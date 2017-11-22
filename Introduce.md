@@ -1,3 +1,5 @@
+为Python提供异步HTTP 客户端/服务端编程，基于<a href="https://aiohttp.readthedocs.io/en/stable/glossary.html#term-asyncio">asyncio(Python用于支持异步编程的标准库)</a>。
+
 ## 核心功能:
 
 * 同时支持<a href="https://aiohttp.readthedocs.io/en/stable/client.html#aiohttp-client">客户端使用</a>和<a href="https://aiohttp.readthedocs.io/en/stable/web.html#aiohttp-web">服务端使用</a>。
@@ -114,13 +116,14 @@ web.run_app(app)
 
 随时在<a href="https://github.com/aio-libs/aiohttp">GitHub</a>上提交PR来改善此项目。
 
-## 改变向后不兼容的策略
-aiohttp 保持向后兼容.
+## 对后续不再兼容的更改所采用的策略
+一般的更改aiohttp 保持向后兼容.
 
-在废弃某些公开API(方法，类，函数参数等.)后仍保证可以使用这些被废弃的API至少一年半的时间，之后发布新版本后弃用。
+在废弃某些公开API(方法，类，函数参数等.)后仍保证可以使用这些被废弃的API至少一年半的时间直到某新版本完全弃用。
+
 所有废弃的东西都会反映在文档中并给出**已废弃**提示。
 
-有时我们会因为一些非常强烈的原因带来的好处而强制改变规则。大多数原因是危机性BUG，这种BUG只能通过修改主要API解决，但我们会尽可能不让这种事情发生。
+有时我们会因一些必须要做的理由而打破某些我们定的规则。大多数原因是有只能通过修改主要API解决的BUG出现，但我们会尽可能不让这种事情发生。
 
 ## 目录:
 打开此<a href="https://aiohttp.readthedocs.io/en/stable/toc.html#mastertoc">链接</a>看完整的目录。
