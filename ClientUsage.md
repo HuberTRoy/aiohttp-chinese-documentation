@@ -27,8 +27,8 @@ session.options('http://httpbin.org/get')
 session.patch('http://httpbin.org/patch', data=b'data')
 ```
 > ### 注意:
-    不要为每个请求都创建一个会话。大多数情况下每个应用程序只需要一个会话就可以执行所有的请求。
-    每个会话对象都包含一个连接池，可复用的连接和持久连接状态(keep-alives，这两个是默认的)可提升总体的执行效率。
+不要为每个请求都创建一个会话。大多数情况下每个应用程序只需要一个会话就可以执行所有的请求。
+每个会话对象都包含一个连接池，可复用的连接和持久连接状态(keep-alives，这两个是默认的)可提升总体的执行效率。
 
 ## JSON请求:
 每个会话的请求方法都可接受json参数。
@@ -69,21 +69,17 @@ async with session.get('http://httpbin.org/get',
         assert str(r.url) == 'http://httpbin.org/get?key=value+1'
 ```
 > ### 注意:
-    *aiohttp*会在发送请求前标准化URL。
-
-    域名部分会用<a href="https://aiohttp.readthedocs.io/en/stable/glossary.html#term-idna"> IDNA</a> 编码，路径和查询条件会<a href="https://aiohttp.readthedocs.io/en/stable/glossary.html#term-requoting">重新编译(requoting)</a>。
-
-    比如:`URL('http://example.com/путь%30?a=%31')` 会被转化为`URL('http://example.com/%D0%BF%D1%83%D1%82%D1%8C/0?a=1')`
-
-    如果服务器需要接受准确的表示并不要求编译URL，那标准化过程应是禁止的。
-
-    禁止标准化可以使用`encoded=True`:
-    ```
-    await session.get(URL('http://example.com/%30', encoded=True))
-    ```
+*aiohttp*会在发送请求前标准化URL。
+域名部分会用<a href="https://aiohttp.readthedocs.io/en/stable/glossary.html#term-idna">IDNA</a> 编码，路径和查询条件会<a href="https://aiohttp.readthedocs.io/en/stable/glossary.html#term-requoting">重新编译(requoting)</a>。
+比如:`URL('http://example.com/путь%30?a=%31')` 会被转化为`URL('http://example.com/%D0%BF%D1%83%D1%82%D1%8C/0?a=1')`
+如果服务器需要接受准确的表示并不要求编译URL，那标准化过程应是禁止的。
+禁止标准化可以使用`encoded=True`:
+```
+await session.get(URL('http://example.com/%30', encoded=True))
+```
 
 > ### 警告:
-    传递*params*时不要用`encode=True`，这俩参数不能同时使用。
+传递*params*时不要用`encode=True`，这俩参数不能同时使用。
 
 ## 响应内容:
 我们可以读取服务器的响应内容。想想我们获取GitHub时间轴的例子:
@@ -118,7 +114,7 @@ async with session.get('https://api.github.com/events') as resp:
 如果JSON解码失败，**json()**方法将会抛出一个异常。你还可以在调用**json()**时指定编码器和解码器函数。
 
 > ### 注意:
-    这些方法会读出内存中所有响应的内容。如果你要读非常多的数据，考虑使用流式响应方法进行读取。请看之后的文档。
+这些方法会读出内存中所有响应的内容。如果你要读非常多的数据，考虑使用流式响应方法进行读取。请看之后的文档。
 
 ## 流式响应内容:
 **read()**, **json()**, **text()**等方法使用起来很方便，但也要注意谨慎地使用。上述方法会将所有的响应内容加载到内存。举个例子，如果你要下载几个G的文件，这些方法还是会将所有内容都加载到内存，内存会表示"臣妾做不到啊~"(如果内存不够的话)。作为代替你可以用**content**属性。content其实是 **aiohttp.StreamReader**类的实例。`gzip`和`deflate`传输编码同样会自动解码。
@@ -166,7 +162,7 @@ async with ClientSession(cookies=cookies) as session:
            "cookies": {"cookies_are": "working"}}
 ```
 > ### 注意:
-    访问`httpbin.org/cookies` 会看到以JSON形式返回的cookies。查阅会话中的cookies请看**<a href="https://aiohttp.readthedocs.io/en/stable/client_reference.html#aiohttp.ClientSession.cookie_jar">ClientSession.cookie_jar</a>**。
+访问`httpbin.org/cookies` 会看到以JSON形式返回的cookies。查阅会话中的cookies请看**<a href="https://aiohttp.readthedocs.io/en/stable/client_reference.html#aiohttp.ClientSession.cookie_jar">ClientSession.cookie_jar</a>**。
 
 ## 更复杂的POST请求:
 一般来说，如果你想以表单形式发送一些数据 - 就像HTML表单。那么只需要简单的将一个dict通过*data*参数传递就可以。传递的dict数据会自动编码:
@@ -218,7 +214,7 @@ await session.post(url, data=data)
 如果你把一个文件对象传递给data参数，aiohttp会自动将其以流的形式上传。查看**StreamReader**以获取支持的格式信息。
 
 > ### 参见:
-    <a href="https://aiohttp.readthedocs.io/en/stable/multipart.html#aiohttp-multipart">使用Multipart.</a>
+<a href="https://aiohttp.readthedocs.io/en/stable/multipart.html#aiohttp-multipart">使用Multipart.</a>
 
 ## 流式上传:
 **aiohttp** 支持多种形式的流式上传，允许你直接发送大文件而不必读到内存。
@@ -332,10 +328,10 @@ session = aiohttp.ClientSession(connector=conn)
 ```
 
 > ### 注解:
-    不要给多个会话对象使用同一个连接器，某一会话对象拥有其所有权。
+不要给多个会话对象使用同一个连接器，某一会话对象拥有其所有权。
 
 > ### 参见:
-    查看<a href="https://aiohttp.readthedocs.io/en/stable/client_reference.html#aiohttp-client-reference-connectors">连接器</a>部分了解更多不同的连接器类型和配置选项信息。
+查看<a href="https://aiohttp.readthedocs.io/en/stable/client_reference.html#aiohttp-client-reference-connectors">连接器</a>部分了解更多不同的连接器类型和配置选项信息。
 
 ## 限制连接池的容量:
 限制同一时间打开的连接数可以传递limit参数:
@@ -438,13 +434,13 @@ assert exc.got == b'...'
 openssl x509 -in crt.pem -inform PEM -outform DER > crt.der
 ```
 > ### 注解:
-    提示: 从16进制数字转换成二进制字节码，你可以用**binascii.unhexlify()**.
+提示: 从16进制数字转换成二进制字节码，你可以用**binascii.unhexlify()**.
 
-    **TCPConnector**中设置的*verify_ssl, fingerprint和ssl_context*都会被当做默认的verify_ssl, fingerprint和ssl_context，**ClientSession**或其他同类组件中的设置会覆盖默认值。
+**TCPConnector**中设置的*verify_ssl, fingerprint和ssl_context*都会被当做默认的verify_ssl, fingerprint和ssl_context，**ClientSession**或其他同类组件中的设置会覆盖默认值。
 
 > ### 警告:
-    *verify_ssl 和 ssl_context*是*互斥*的。
-    *MD5*和*SHA1*指纹虽不赞成使用但是是支持的 - 这俩是非常不安全的哈希函数。
+*verify_ssl 和 ssl_context*是*互斥*的。
+*MD5*和*SHA1*指纹虽不赞成使用但是是支持的 - 这俩是非常不安全的哈希函数。
 
 ## Unix 域套接字:
 如果你的服务器使用UNIX域套接字你可以用**UnixConnector**:
@@ -529,7 +525,7 @@ async with session.get(url) as resp:
     print(resp.cookies['example_cookie_name'])
 ```
 > ### 注意:
-    响应中的cookies只包含重定向链中最后一个请求中的`Set-Cookies`头信息设置的值。如果每一次重定向请求都收集一次cookies请使用<a href="https://aiohttp.readthedocs.io/en/stable/client.html#aiohttp-client-session"> aiohttp.ClientSession</a>对象.
+响应中的cookies只包含重定向链中最后一个请求中的`Set-Cookies`头信息设置的值。如果每一次重定向请求都收集一次cookies请使用<a href="https://aiohttp.readthedocs.io/en/stable/client.html#aiohttp-client-session"> aiohttp.ClientSession</a>对象.
 
 ## 响应历史:
 如果一个请求被重定向了，你可以用**history**属性查看其之前的响应:
@@ -579,7 +575,7 @@ with async_timeout.timeout(0.001):
         await r.text()
 ```
 > ### 注意:
-    超时时间是累计的，包含如发送情况，重定向，响应解析，处理响应等所有操作在内...
+超时时间是累计的，包含如发送情况，重定向，响应解析，处理响应等所有操作在内...
 
 ## 不错的结尾:
 当一个包含`ClientSession`的`async with`代码块的末尾行结束时(或直接调用了`.close()`)，因为asyncio内部的一些原因底层的连接其实没有关闭。在实际使用中，底层连接需要有一个缓冲时间来关闭。然而，如果事件循环在底层连接关闭之前就结束了，那么会抛出一个 资源警告: 存在未关闭的传输(通道)(`ResourceWarning: unclosed transport`),如果警告可用的话。
