@@ -458,3 +458,218 @@ async def fetch():
     **path**
         返回UNIX套接字路径，该属性只读。
 
+
+# Connection
+*class* aiohttp.Connection
+    连接器对象中封装的单个连接。
+    终端用户不要手动创建Connection实例，但可调用BaseConnector.connect()来获取Connection实例，这个方法是协程方法。
+
+*   closed
+        只读属性，返回布尔值。如果该连接已关闭，释放或从某一连接器分离则返回Ture。
+
+*   loop
+        返回处理连接的事件循环。
+
+*   transport
+        返回该连接的传输通道。
+
+close()
+        关闭连接并强制关闭底层套接字。
+
+release()
+        从连接器中将该连接释放。
+        底层套接字并未关闭，如果超时时间(默认30秒)过后该连接仍可用则会被重新占用。
+
+detach()
+        将底层套接字从连接中分离。
+        底层套接字并未关闭， 之后调用close()或release()也不会有空闲连接池对该套接字有其他操作。
+
+# 响应对象(Response object)
+
+*class aiohttp.ClientResponse*
+    ClientSession.requests() 及其同类成员的返回对象。
+    用户不要创建ClientResponse的实例，它是由调用API获得的返回。
+
+    ClientResponse支持async上下文管理器:
+
+```
+resp = await client_session.get(url)
+async with resp:
+    assert resp.status == 200
+```
+这样退出后会自动释放。(详情看release()协程方法)
+此语法于0.18版本开始支持。
+
+*   version
+        返回响应的版本信息，是HttpVersion实例对象。
+
+*   status
+        返回响应的HTTP状态码(整数)，比如: 200。
+
+*   reason
+        返回响应的HTTP叙述(字符串)，比如"OK"。
+
+*   method
+        返回请求的HTTP方法(字符串)。
+
+*   url
+        返回请求的URL(URL对象)。
+
+*   connection
+        返回处理响应的连接。
+
+*   content
+        包含响应主体(StreamReader)的载体流。支持多种读取方法。服务器使用分块传输编码时同样允许分块接受。
+        读取时可能会抛出aiohttp.ClientPayloadError，这种情况发生在响应对象在接受所有的数据前就关闭了或有任何传输编码相关的错误如错误的压缩数据所造成的不规则分块编码。
+*   cookies
+        响应中的HTTP cookies,(由Set-Cookie HTTP头信息设置, 属于SimpleCookie)
+
+*   headers
+        返回响应的HTTP头信息，是一个大小写不敏感的并联字典(CIMultiDictProxy)。
+*   raw_headers
+        返回原始HTTP头信息，未经编码，格式是键值对形式。
+
+*   content_type
+        返回Content-Type头信息的内容。该属性只读。
+
+> ###注意
+    根据RFC2616，如果没有Content-Type包含其中则它的值为'application/octet-stream'.可以用使用'CONTENT-TYPE' not in resp.headers(raw_headers)来弄清楚服务器的响应是否包含Content-type
+
+*   charset
+        返回请求的主体的编码。
+        该值来自于Content-Type HTTP头信息。
+        返回的值是类似于'utf-8'之类的字符串，如果HTTP头中不含Content-Type或其中没有charset信息则是None。
+
+*   history
+        返回包含所有的重定向请求(都是ClientResponse对象，最开始的请求在最前面)的序列，如果没用重定向则返回空序列。
+
+**close()**
+        关闭响应和底层连接。
+        要关闭持久连接请看release().
+
+**coroutine read()**
+        以字节码形式读取所有响应内容。
+        如果读取数据时得到一个错误将会关闭底层连接，否则将会释放连接。
+        如果不可读则会抛出aiohttp.ClientResponseError错误。
+        返回响应内容的字节码。
+        参见:
+            close(), release().
+
+**coroutine release()**
+        一般不需要调用release。当客户端接受完信息时，底层连接将会自动返回到连接池中。如果载体中的内容没有全部读完，连接也会关闭。
+
+
+**raise_for_status()**
+        如果响应的状态码是400或更高则会抛出aiohttp.ClientResponseError
+        如果小于400则什么都不会做。
+
+**coroutine text(encoding=None)**
+        读取响应内容并返回解码后的信息。
+        如果encoding为None则会从Content-Type中获取，如果Content-Type中也没有会用chardet获取。
+        如果有cchardet会优先使用cchardet。
+        如果读取数据时得到一个错误将会关闭底层连接，否则将会释放连接。
+        Parameters: encoding(字符串) - 指定以该编码方式解码内容，None则自动获取编码方式(默认为None)。
+        Return 字符串: 解码后的内容。
+> ###注意
+        如果Content-Type中不含charset信息则会使用cchardet/chardet获取编码。
+        这两种方法都会拖慢执行效率。如果知道页面所使用的编码直接指定是比较好的做法:
+        ```
+        await resp.text('ISO-8859-1')
+        ```
+
+**coroutine json(\*, encoding=None, loads=json.loads, content_type='application/json')**
+        以JSON格式读取响应内容，解码和解析器可由参数指定。如果数据不能read则会直接结束。
+        如果encoding为None，会使用cchardet或chardet获取编码。
+        如果响应中的Content-type不能与参数中的content_type的值相匹配则会抛出aiohttp.ContentTypeError错误。可传入None跳过此检查。
+
+        **Parameters:**
+*          encoding (字符串) - 传入用于解码内容的编码名，或None自动获取。 
+*          loads (可调用对象) - 用于加载JSON数据，默认是json.loads.
+*          content_type (字符串) - 传入字符串以查看响应中的content-type是否符合预期，如果不符合则抛出aiohttp.ContentTypeError错误。传入None可跳过该检测，默认是application/json 。
+        **Returns:**    
+                返回使用loads进行JSON编码后的数据，如果内容为空或内容只含空白则返回None。
+
+**request_info**
+        存放有headers和请求URL的nametuple(一种方便存放数据的扩展类，存在于collections模块中。)属于aiohttp.RequestInfo实例。
+
+# ClientWebSocketResponse
+    使用协程方法aiohttp.ws_connect()或aiohttp.ClientSession.ws_connect()连接使用websocket的服务器，不要手动来创建ClientWebSocketResponse。
+
+*class aiohttp.ClientWebSocketResponse*
+        用于处理客户端websockets的类
+
+    **closed**
+        如果close()已经调用过或接受了CLOSE消息则返回True。
+        该属性只读。
+
+    **protocol**
+        调用start()后选择的websocket协议。
+        如果服务器和客户端所选协议不一致则是None。
+
+    **get_extra_info(name, default=None)**
+        返回从连接的transport中读取到的额外的信息。
+
+    **exception()**
+        如果有错误则返回那个错误，否则返回None。
+
+    **ping(message=b'')**
+        向服务器发送PING.
+        Parameters: message – 发送PING时携带的消息，类型是由UTF-8编码的字符串或字节码。(可选)
+
+    **coroutine send_str(data)**
+        向服务器发送文本消息。
+        Parameters: data (字符串) – 要发送的消息.
+        Raises: 如果不是字符串会抛出TypeError错误。
+
+    **coroutine send_bytes(data)**
+        向服务器发送二进制消息。
+        Parameters: data – 要发送的消息。
+        Raises: 如果不是字节码，字节数组或memoryview将抛出TypeError错误。
+
+    **coroutine send_json(data, *, dumps=json.dumps)**
+        向服务器发送json字符串。
+        Parameters: 
+            data – 要发送的消息.
+            dumps (可调用对象) –任何可接受某个对象并返回JSON字符串的可调用对象。默认是json.dumps()
+        Raises: 
+            RuntimeError – 如果连接没有启动或已关闭会抛出这个错误。
+            ValueError – 如果数据不是可序列化的对象会抛出这个错误。
+            TypeError – 如果由dumps调用后返回的不是字符串会抛出这个错误。
+
+    **coroutine close(\*, code=1000, message=b'')**
+        用于向服务器发起挥手(CLOSE)信息，请求关闭连接。它会等待服务器响应。这是一个异步方法，所以如果要添加超时时间可以用asyncio.wait()或asyncio.wait_for()包裹。
+
+        Parameters: 
+            code (整数) – 关闭状态码。
+            message – pong消息携带的信息，类型是由UTF-8编码的字符串或字节码。(可选)
+
+    **coroutine receive()**
+            等待服务器传回消息并在接受后将其返回。
+            此方法隐式的处理PING, PONG, CLOSE消息。(不会返回这些消息)
+
+            Returns:    WSMessage
+    
+    **coroutine receive_str()**
+            调用receive()并判断该消息是否是文本。
+
+        Return 字符串: 服务器传回的内容。
+        Raises: 如果消息是二进制则会抛出TypeError错误。
+
+    **coroutine receive_bytes()**
+             调用receive()并判断该消息是否是二进制内容。
+
+        Return 字符串: 服务器传回的内容。
+        Raises: 如果消息是文本则会抛出TypeError错误。           
+    
+    **coroutine receive_json(\*, loads=json.loads)**
+        调用receive_str()并尝试将JSON字符串转成Python中的dict(字典)。
+
+        Parameters: 
+            loads (可调用对象) – 任何可接受字符串并返回字典的可调用对象。默认是json.loads()
+
+        Return dict:    
+            返回处理过的JSON内容。
+
+        Raises: 
+            如果消息是二进制则会抛出TypeError错误。
+            如果不是JSON消息则会抛出ValueError错误。
