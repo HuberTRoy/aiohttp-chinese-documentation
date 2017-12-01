@@ -673,3 +673,229 @@ async with resp:
         Raises: 
             如果消息是二进制则会抛出TypeError错误。
             如果不是JSON消息则会抛出ValueError错误。
+
+# RequestInfo
+*class aiohttp.RequestInfo*
+        存放请求URL和头信息的namedtuple，使用ClientResponse.request_info属性可访问。
+
+**url**
+    请求的URL，是yarl.URL实例对象。
+
+**method**
+    请求时使用的HTTP方法，如'GET', 'POST'，是个字符串。
+
+**headers**
+    请求时携带的HTTP头信息，是multidict.CIMultiDict 实例对象。
+
+# BasicAuth
+*class aiohttp.BasicAuth(login, password='', encoding='latin1')*
+        用于协助进行HTTP基础认证的类。
+
+    **Parameters: **
+*       login (字符串) - 用户名。
+*       password (字符串) – 密码。
+*       encoding (字符串) – 编码信息（默认是'latin1'）。
+    一般在客户端 API中使用，比如给ClientSession.request()指定auth参数。
+
+    *classmethod decode(auth_header, encoding='latin1')*
+            解码HTTP基本认证信息。
+
+        **Parameters:** 
+*           auth_header (字符串) – 需要解码的 Authorization 头数据。
+*           encoding (字符串) – (可选) 编码信息(默认是‘latin1’)
+        **Returns:**   
+            返回解码后的认证信息。
+
+    *classmethod from_url(url)*
+            从URL中获取用户名和密码。
+
+        **Returns:**   返回BasicAuth，如果认证信息未提供则返回None。
+        新增于2.3版本。
+    *encode()*
+        将认证信息编码为合适的 Authorization头数据。
+
+        **Returns:**  返回编码后的认证信息。
+
+# CookieJar
+*class aiohttp.CookieJar(\*, unsafe=False, loop=None)*
+        cookie jar实例对象可用在ClientSession.cookie_jar中。
+        jar对象包含用来存储内部cookie数据的Morsel组件。
+        可查看保存的cookies数量:
+        ```
+        len(session.cookie_jar)
+        ```
+        也可以被迭代:
+        ```
+        for cookie in session.cookie_jar:
+            print(cookie.key)
+            print(cookie["domain"])
+        ```
+        该类提供collections.abc.Iterable, collections.abc.Sized 和 aiohttp.AbstractCookieJar中的方法接口。
+        提供符合RFC 6265规定的cookie存储。
+        **Parameters:** 
+*               unsafe (布尔类型) – (可选)是否可从IP(的HTTP请求)中接受cookies。
+*               loop (布尔类型) – 一个事件循环实例。请看aiohttp.abc.AbstractCookieJar。2.0版本后不赞成使用。
+    
+
+*update_cookies(cookies, response_url=None)*
+        从服务器返回的Set-Cookie信息中更新cookies。
+
+        **Parameters: **
+*           cookies – 需要collections.abc.Mapping对象(如dict, SimpleCookie) 或包含cookies的可迭代键值对对象。 
+*           response_url (字符串) – cookies所属的URL，如果要共享cookies则不要填。标准的cookies应是与服务器URL成对出现，只在向该服务器请求时被发送出去，如果是共享的则会发送给所有的服务器。
+
+**filter_cookies(request_url)**
+        返回与request_url相匹配的cookies，和能给这个URL携带的cookie(一般是设置为None也就是共享的cookie)。
+
+        **Parameters:** response_url (字符串) – 需要筛选的URL。
+        **Returns:**    返回带有给定URL cookies的http.cookies.SimpleCookie。
+
+**save(file_path)**
+        以pickle形式将cookies信息写入指定路径。
+
+        **Parameters:** file_path –  要写入的路径。字符串或pathlib.Path实例对象。
+
+**load(file_path)**
+        从给定路径读取被pickle的cookies信息。
+
+        **Parameters:** file_path – 要导入的路径, 字符串或pathlib.Path实例对象。
+
+*class aiohttp.DummyCookieJar(\*, loop=None)*
+        假人cookie jar，用于忽略cookie。
+        在一些情况下是很有用的: 比如写爬虫时不需要保存cookies信息，只要一直下载内容就好了。
+        将它的实例对象传入即可使用:
+        ```
+        jar = aiohttp.DummyCookieJar()
+        session = aiohttp.ClientSession(cookie_jar=DummyCookieJar())
+        ```
+
+# Client exceptions
+异常等级制度在2.0版本有较大修改。aiohttp只定义连接处理部分和服务器没有正确响应的异常。一些由开发者引起的错误将使用python标准异常如ValueError，TypeError。
+读取响应内容可能会抛出ClientPayloadError异常。该异常表示载体编码时有些问题。比如有无效的压缩信息，不符合分块编码要求的分块内容或内容与content-length指定的大小不一致。
+所有的异常都可当做aiohttp模块使用。
+
+*exception aiohttp.ClientError*
+    所有客户端异常的基类。
+    继承于Exception。
+
+*class aiohttp.ClientPayloadError*
+        该异常只会因读取响应内容时存在下列错误而抛出:
+            1. 存在无效压缩信息。
+            2. 错误的分块编码。
+            3. 与Conent-Length不匹配的内容。
+        继承于ClientError.
+
+*exception aiohttp.InvalidURL*
+        不合理的URL会抛出此异常。比如不含域名部分的URL。
+        继承于ClientError和ValueError。
+
+        **url**
+            返回那个无效的URL, 是yarl.URL的实例对象。
+
+# Response errors
+
+*exception aiohttp.ClientResponseError*
+        这个异常有时会在我们从服务器得到响应后抛出。
+        继承于ClientError
+
+        **request_info**
+            该属性是RequestInfo实例对象，包含请求信息。
+
+        **code**
+            该属性是响应的HTTP状态码。如200.
+
+        **message**
+            该属性是响应消息。如"OK"
+
+        **headers**
+            该属性是响应头信息。数据类型是列表。
+
+        **history**
+            该属性存储失败的响应内容，如果该选项可用的话，否则是个空元组。
+            元组中的ClientResponse对象用于处理重定向响应。
+
+*class aiohttp.WSServerHandshakeError*
+    Web socket 服务器响应异常。
+    继承于ClientResponseError
+
+*class aiohttp.WSServerHandshakeError*
+    Web socket 服务器响应异常。
+    继承于ClientResponseError
+    
+*class aiohttp.ContentTypeError*
+    无效的content type。
+    继承于ClientResponseError
+    新增于2.3版本。
+
+# Connection errors
+*class aiohttp.ClientConnectionError*
+        该类异常与底层连接的问题相关。
+        继承于ClientError。
+
+*class aiohttp.ClientOSError*
+        连接错误的子集，与OSError属同类异常。
+        继承于ClientConnectionError和OSError.
+
+*class aiohttp.ClientConnectorError*
+        连接器相关异常。
+        继承于ClientOSError
+
+*class aiohttp.ClientProxyConnectionError*
+        继承于ClientConnectonError。(由源码知继承于ClientConnectorError原文写错了。)
+
+*class aiohttp.ServerConnectionError*
+        继承于ClientConnectonError。(由源码知继承于ClientConnectionError原文写错了。)
+
+*class aiohttp.ClientSSLError*
+        继承于ClientConnectonError。(由源码知继承于ClientConnectorError原文写错了。)
+
+*class aiohttp.ClientConnectorSSLError*
+        用于响应ssl错误。
+        继承于ClientSSLError和ssl.SSLError
+
+*class aiohttp.ClientConnectorCertificateError*
+        用于响应证书错误。
+        继承于 ClientSSLError 和 ssl.CertificateError
+
+*class aiohttp.ServerDisconnectedError*
+        服务器无法连接时抛出的错误。
+        继承于ServerDisconnectionError。
+
+        **message**
+            包含部分已解析的HTTP消息。(可选)
+
+*class aiohttp.ServerTimeoutError*
+        进行服务器操作时超时，如 读取超时。
+        继承于ServerConnectionError 和 asyncio.TimeoutError。
+
+*class aiohttp.ServerFingerprintMismatch*
+        无法与服务器指纹相匹配时的错误。
+        继承于ServerDisconnectionError。
+
+异常等级图:
+* ClientError
+
+**      ClientResponseError
+
+***         ContentTypeError
+***         WSServerHandshakeError
+***         ClientHttpProxyError
+**      ClientConnectionError
+
+***         ClientOSError
+
+****            ClientConnectorError
+
+*****                   ClientSSLError
+******                      ClientConnectorCertificateError
+******                      ClientConnectorSSLError
+*****                   ClientProxyConnectionError
+****            ServerConnectionError
+
+*****                   ServerDisconnectedError
+*****                   ServerTimeoutError
+****            ServerFingerprintMismatch
+
+**     ClientPayloadError
+
+**      InvalidURL
