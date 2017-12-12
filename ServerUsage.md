@@ -409,3 +409,200 @@ app.router.add_static('/prefix', path_to_static_folder, follow_symlinks=True)
 ```
 app.router.add_static('/prefix', path_to_static_folder, append_version=True)
 ```
+
+
+# 模板
+
+aiohttp.web并不直接提供模板读取，不过可以使用第三方库 aiohttp_jinja2，是由aiohttp作者维护的。
+使用起来也很简单。首先我们用 aiohttp_jinja2.setup()来设置下jinja2环境:
+```
+app = web.Application()
+aiohttp_jinja2.setup(app,
+    loader=jinja2.FileSystemLoader('/path/to/templates/folder'))
+```
+
+然后将模板引擎应用到处理器中。最简单的方式是使用aiohttp_jinja2.templates()装饰器:
+```
+@aiohttp_jinja2.template('tmpl.jinja2')
+def handler(request):
+    return {'name': 'Andrew', 'surname': 'Svetlov'}
+```
+如果你更喜欢Mako模板引擎，可以看看 aiohttp_mako库。
+
+# JSON 响应
+
+使用 aiohttp.web.json_response()可以返回JSON响应:
+```
+def handler(request):
+    data = {'some': 'data'}
+    return web.json_response(data)
+```
+
+这个方法返回的是 aiohttp.web.Response实例对象，所以你可以做些其他的事，比如设置 cookies。
+
+# 用户会话
+你经常想要一个可以通过请求存储用户数据的仓库。一般简称为会话。
+
+aiohttp.web没有内置会话，不过你可以使用第三方库 aiohttp_session来提供会话支持:
+```
+import asyncio
+import time
+import base64
+from cryptography import fernet
+from aiohttp import web
+from aiohttp_session import setup, get_session, session_middleware
+from aiohttp_session.cookie_storage import EncryptedCookieStorage
+
+async def handler(request):
+    session = await get_session(request)
+    last_visit = session['last_visit'] if 'last_visit' in session else None
+    text = 'Last visited: {}'.format(last_visit)
+    return web.Response(text=text)
+
+def make_app():
+    app = web.Application()
+    # secret_key must be 32 url-safe base64-encoded bytes
+    fernet_key = fernet.Fernet.generate_key()
+    secret_key = base64.urlsafe_b64decode(fernet_key)
+    setup(app, EncryptedCookieStorage(secret_key))
+    app.router.add_route('GET', '/', handler)
+    return app
+
+web.run_app(make_app())
+```
+
+
+# HTTP表单
+aiohttp直接提供HTTP表单支持。
+
+如果表单的方法是 “GET”（<form method="get">），使用Request.query获取数据。
+如果是“POST”则用Request.post()或 Request.multipart()
+Request.post()接受标明为'application/x-www-form-urlencoded'和'multipart/form-data' 的数据（<form enctype="multipart/form-data">）。它会将数据存进一个临时字典中。如果指定了client_max_size，超出了的话会抛出ValueError异常。用Request.multipart()是更好的选择，尤其是在上传大文件时。
+
+小例子:
+由以下表单发送的数据:
+```
+<form action="/login" method="post" accept-charset="utf-8"
+      enctype="application/x-www-form-urlencoded">
+
+    <label for="login">Login</label>
+    <input id="login" name="login" type="text" value="" autofocus/>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" value=""/>
+
+    <input type="submit" value="login"/>
+</form>
+```
+
+可以用以下方法获取:
+```
+async def do_login(request):
+    data = await request.post()
+    login = data['login']
+    password = data['password']
+```
+
+# 文件上传
+
+aiohttp.web内置处理文件上传的功能。
+
+首先呢我们要确保 <form>标签的有enctype元素并且设置为了"multipart/form-data"。 
+我们写一个可以上传MP3文件的表单（作为例子）:
+```
+<form action="/store/mp3" method="post" accept-charset="utf-8"
+      enctype="multipart/form-data">
+
+    <label for="mp3">Mp3</label>
+    <input id="mp3" name="mp3" type="file" value=""/>
+
+    <input type="submit" value="submit"/>
+</form>
+```
+
+之后你可以在请求处理器中接受这个文件，它变成了一个FileField实例对象。FileFiled包含了该文件的原信息。
+
+```
+async def store_mp3_handler(request):
+
+    # 注意，如果是个很大的文件不要用这种方法。
+    data = await request.post()
+
+    mp3 = data['mp3']
+
+    # .filename 包含该文件的名称，是个字符串。
+    filename = mp3.filename
+
+    # .file 包含该文件的内容。
+    mp3_file = data['mp3'].file
+
+    content = mp3_file.read()
+
+    return web.Response(body=content,
+                        headers=MultiDict(
+                            {'CONTENT-DISPOSITION': mp3_file}))
+```
+
+注意例子中的警告。通常Reuest.post()会把所有数据读到内容，可能会引起OOM(out of memory 内存炸了)错误。你可以用Request.multipart()来避免这种情况，它返回的是multipart读取器。
+
+```
+async def store_mp3_handler(request):
+
+    reader = await request.multipart()
+
+    # /!\ 不要忘了这步。（至于为什么请搜索 Python 生成器/异步）/!\
+
+    mp3 = await reader.next()
+
+    filename = mp3.filename
+
+    # 如果是分块传输的，别用Content-Length做判断。
+    size = 0
+    with open(os.path.join('/spool/yarrr-media/mp3/', filename), 'wb') as f:
+        while True:
+            chunk = await mp3.read_chunk()  # 默认是8192个字节。
+            if not chunk:
+                break
+            size += len(chunk)
+            f.write(chunk)
+
+    return web.Response(text='{} sized of {} successfully stored'
+                             ''.format(filename, size))
+```
+
+# WebSockets
+
+aiohttp.web 直接提供WebSockets支持。
+
+在处理器中创建一个WebSocketResponse对象即可设置WebSocket，之后即可进行通信:
+```
+async def websocket_handler(request):
+
+    ws = web.WebSocketResponse()
+    await ws.prepare(request)
+
+    async for msg in ws:
+        if msg.type == aiohttp.WSMsgType.TEXT:
+            if msg.data == 'close':
+                await ws.close()
+            else:
+                await ws.send_str(msg.data + '/answer')
+        elif msg.type == aiohttp.WSMsgType.ERROR:
+            print('ws connection closed with exception %s' %
+                  ws.exception())
+
+    print('websocket connection closed')
+
+    return ws
+```
+
+该处理器需要用HTTP GET方法注册:
+```
+app.router.add_get('/ws', websocket_handler)
+
+```
+
+从WebSocket中读取数据（await ws.receive()）必须在请求处理器内部完成，不过写数据（ws.send_str(...)），关闭（await ws.close()）和取消操作可以在其他任务中完成。 详情看 FAQ 部分。
+
+aiohttp.web 隐式的使用asyncio.Task处理每个请求。
+
+
