@@ -605,4 +605,246 @@ app.router.add_get('/ws', websocket_handler)
 
 aiohttp.web 隐式的使用asyncio.Task处理每个请求。
 
+### 注意:
+虽然aiohttp仅支持不带诸如长轮询的WebSocket不过如果我们有维护一个基于aiohttp的SockJS包，用于部署兼容SockJS服务器端的代码。
+
+### 警告
+不要试图从websocket中并行地读取数据，aiohttp.web.WebSocketResponse.receive()不能在分布在两个任务中同时调用。
+
+请看 FAQ 部分了解解决方法。
+
+# 异常
+aiohttp.web定义了所有HTTP状态码的异常。
+
+每个异常都是HTTPException的子类和某个HTTP状态码。
+同样还都是Response的子类，所以就允许你在请求处理器中返回或抛出它们。
+请看下面这些代码:
+
+```
+async def handler(request):
+    return aiohttp.web.HTTPFound('/redirect')
+```
+```
+async def handler(request):
+    raise aiohttp.web.HTTPFound('/redirect')
+```
+
+每个异常的状态码是根据RFC 2068规定来确定的: 100-300不是由错误引起的; 400之后是客户端错误，500之后是服务器端错误。
+
+异常等级图:
+```
+  HTTPException
+    HTTPSuccessful
+      * 200 - HTTPOk
+      * 201 - HTTPCreated
+      * 202 - HTTPAccepted
+      * 203 - HTTPNonAuthoritativeInformation
+      * 204 - HTTPNoContent
+      * 205 - HTTPResetContent
+      * 206 - HTTPPartialContent
+    HTTPRedirection
+      * 300 - HTTPMultipleChoices
+      * 301 - HTTPMovedPermanently
+      * 302 - HTTPFound
+      * 303 - HTTPSeeOther
+      * 304 - HTTPNotModified
+      * 305 - HTTPUseProxy
+      * 307 - HTTPTemporaryRedirect
+      * 308 - HTTPPermanentRedirect
+    HTTPError
+      HTTPClientError
+        * 400 - HTTPBadRequest
+        * 401 - HTTPUnauthorized
+        * 402 - HTTPPaymentRequired
+        * 403 - HTTPForbidden
+        * 404 - HTTPNotFound
+        * 405 - HTTPMethodNotAllowed
+        * 406 - HTTPNotAcceptable
+        * 407 - HTTPProxyAuthenticationRequired
+        * 408 - HTTPRequestTimeout
+        * 409 - HTTPConflict
+        * 410 - HTTPGone
+        * 411 - HTTPLengthRequired
+        * 412 - HTTPPreconditionFailed
+        * 413 - HTTPRequestEntityTooLarge
+        * 414 - HTTPRequestURITooLong
+        * 415 - HTTPUnsupportedMediaType
+        * 416 - HTTPRequestRangeNotSatisfiable
+        * 417 - HTTPExpectationFailed
+        * 421 - HTTPMisdirectedRequest
+        * 422 - HTTPUnprocessableEntity
+        * 424 - HTTPFailedDependency
+        * 426 - HTTPUpgradeRequired
+        * 428 - HTTPPreconditionRequired
+        * 429 - HTTPTooManyRequests
+        * 431 - HTTPRequestHeaderFieldsTooLarge
+        * 451 - HTTPUnavailableForLegalReasons
+      HTTPServerError
+        * 500 - HTTPInternalServerError
+        * 501 - HTTPNotImplemented
+        * 502 - HTTPBadGateway
+        * 503 - HTTPServiceUnavailable
+        * 504 - HTTPGatewayTimeout
+        * 505 - HTTPVersionNotSupported
+        * 506 - HTTPVariantAlsoNegotiates
+        * 507 - HTTPInsufficientStorage
+        * 510 - HTTPNotExtended
+        * 511 - HTTPNetworkAuthenticationRequired
+```
+
+所有的异常都拥有相同的结构:
+```
+HTTPNotFound(*, headers=None, reason=None,
+             body=None, text=None, content_type=None)
+```
+如果没有指定headers，默认是响应中的headers。
+其中HTTPMultipleChoices, HTTPMovedPermanently, HTTPFound, HTTPSeeOther, HTTPUseProxy, HTTPTemporaryRedirect的结构是下面这样的:
+```
+HTTPFound(location, *, headers=None, reason=None,
+          body=None, text=None, content_type=None)
+```
+location参数的值会写入到HTTP头部的Location中。
+
+HTTPMethodNotAllowed 的结构是这样的:
+```
+HTTPMethodNotAllowed(method, allowed_methods, *,
+                     headers=None, reason=None,
+                     body=None, text=None, content_type=None)
+```
+method是不支持的那个方法，allowed_methods是所支持的方法。
+
+# 数据共享
+
+aiohttp.web不推荐使用全局变量进行数据共享。每个变量应在自己的上下文中而不是全局可用的。
+因此，aiohttp.web.Application和aiohttp.web.Request提供collections.abc.MutableMapping(类字典对象)来存储数据。
+
+将类全局变量存储到Application实例对象中:
+```
+app['my_private_key'] = data
+```
+
+之后就可以在web处理器中获取出来:
+```
+async def handler(request):
+    data = request.app['my_private_key']
+```
+如果变量的生命周期是一次请求，可以在请求中存储。
+```
+async def handler(request):
+  request['my_private_key'] = "data"
+  ...
+```
+对于中间件和信号处理器存储需要进一步被处理的数据特别有用。
+为了避免与其他aiohttp所写的程序和其他第三方库中的命名出现冲突，请务必写一个独一无二的键名。
+如果你要发布到PyPI上，使用你公司的名称或url或许是个不错的选择。(如 org.company.app)
+
+# 中间件
+
+aiohttp.web提供一个强有力的中间件组件来编写自定义请求处理器。
+
+中间件是一个协程程序帮助修正请求和响应。下面这个例子是在响应中添加'wink'字符串:
+```
+from aiohttp.web import middleware
+
+@middleware
+async def middleware(request, handler):
+    resp = await handler(request)
+    resp.text = resp.text + ' wink'
+    return resp
+```
+（对于流式响应和websockets该例子不起作用）
+
+每个中间件需要接受两个参数，一个是请求实例另一个是处理器，中间件需要返回响应内容。
+
+创建Application时，可以通过middlewares参数传递中间件过去:
+```
+app = web.Application(middlewares=[middleware_1,
+                                   middleware_2])
+```
+
+内部会将单个请求处理器处理的结果经由所传入的中间件处理器倒序的处理一遍。
+因为middlewares（中间件）都是协程程序，所以它们可以执行await语句以进行如从数据库中查询等操作。
+middlewares（中间件）常常会调用处理器，不过也可以不调用，比如用户访问了没有权限访问的资源则显示403Forbidden页面或者抛出HTTPForbidden异常。
+处理器中也可能抛出异常，比如执行一些预处理或后续处理（HTTP访问资源控制等）。
+
+下列代码演示中间件的执行顺序:
+```
+from aiohttp import web
+
+def test(request):
+    print('Handler function called')
+    return web.Response(text="Hello")
+
+@web.middleware
+async def middleware1(request, handler):
+    print('Middleware 1 called')
+    response = await handler(request)
+    print('Middleware 1 finished')
+    return response
+
+@web.middleware
+async def middleware2(request, handler):
+    print('Middleware 2 called')
+    response = await handler(request)
+    print('Middleware 2 finished')
+    return response
+
+
+app = web.Application(middlewares=[middleware1, middleware2])
+app.router.add_get('/', test)
+web.run_app(app)
+Produced output:
+
+Middleware 1 called
+Middleware 2 called
+Handler function called
+Middleware 2 finished
+Middleware 1 finished
+```
+
+# 例子
+通常中间件用于部署自定义错误页面。下面的例子将会使用JSON响应（JSON REST）显示404错误页面。
+```
+import json
+from aiohttp import web
+
+def json_error(message):
+    return web.Response(
+        body=json.dumps({'error': message}).encode('utf-8'),
+        content_type='application/json')
+
+@web.middleware
+async def error_middleware(request, handler):
+    try:
+        response = await handler(request)
+        if response.status == 404:
+            return json_error(response.message)
+        return response
+    except web.HTTPException as ex:
+        if ex.status == 404:
+            return json_error(ex.reason)
+        raise
+
+app = web.Application(middlewares=[error_middleware])
+```
+
+# 旧式中间件
+2.3之前的版本中间件需要一个返回中间件协同程序的外部中间件处理工厂。2.3之后就不在需要这样做了，使用@middleware装饰器即可。
+旧式中间件（使用外部处理工厂不使用@middleware装饰器）仍然支持。此外，新旧两个版本可以混用。
+中间件工厂是一个用于在调用中间件之前做些其他操作的协同程序，下面例子是一个简单中间件工厂:
+```
+async def middleware_factory(app, handler):
+    async def middleware_handler(request):
+        resp = await handler(request)
+        resp.text = resp.text + ' wink'
+        return resp
+    return middleware_handler
+```
+中间件工厂要接受两个参数: app实例对象和请求处理器最后返回一个新的处理器。
+
+### 注意:
+外部中间件工厂和内部中间件处理器会处理每一个请求。
+中间件工厂要返回一个与请求处理器有同样功能的新处理器——接受Request实例对象并返回响应或抛出异常。
+
+
 
