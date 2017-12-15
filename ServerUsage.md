@@ -846,5 +846,46 @@ async def middleware_factory(app, handler):
 外部中间件工厂和内部中间件处理器会处理每一个请求。
 中间件工厂要返回一个与请求处理器有同样功能的新处理器——接受Request实例对象并返回响应或抛出异常。
 
+# 信号
+信号组件新增于0.18版本。
 
+尽管中间件可以自定义之前和之后的处理行为，但并不能自定义响应中的行为。所以信号量由此而生。
 
+比如，中间件只能改变没有预定义HTTP头的响应的HTTP 头（看prepare()），但有时我们需要一个可以改变流式响应和WebSockets HTTP头的钩子。所以我们可以用on_response_prepare信号来充当这个钩子:
+```
+async def on_prepare(request, response):
+    response.headers['My-Header'] = 'value'
+
+app.on_response_prepare.append(on_prepare)
+```
+
+此外，你也可以用on_startup和on_cleanup信号来捕获应用开启和释放时的状态。
+
+请看以下代码:
+```
+from aiopg.sa import create_engine
+
+async def create_aiopg(app):
+    app['pg_engine'] = await create_engine(
+        user='postgre',
+        database='postgre',
+        host='localhost',
+        port=5432,
+        password=''
+    )
+
+async def dispose_aiopg(app):
+    app['pg_engine'].close()
+    await app['pg_engine'].wait_closed()
+
+app.on_startup.append(create_aiopg)
+app.on_cleanup.append(dispose_aiopg)
+```
+
+信号处理器不要返回内容，一般用于修改传入的可变对象。
+信号处理器会循环执行，它们会一直累积。如果处理器是异步方式，在调用下个之前会一直等待。
+
+### 警告:
+信号API目前是临时状态，在未来可能会改变。
+
+信号注册和发送方式基本不会被，不过信号对象的创建可能会变。只要你不创建新信号只用已经存在的信号量那基本不受影响。
