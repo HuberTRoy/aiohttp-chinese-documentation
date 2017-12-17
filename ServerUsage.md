@@ -889,3 +889,57 @@ app.on_cleanup.append(dispose_aiopg)
 信号API目前是临时状态，在未来可能会改变。
 
 信号注册和发送方式基本不会被，不过信号对象的创建可能会变。只要你不创建新信号只用已经存在的信号量那基本不受影响。
+
+# 嵌套应用
+子应用用来完成某些特定的功能。比如我们有一个项目，有独立的业务逻辑和其他功能如管理功能和调试工具。
+
+管理功能是一个独立于业务逻辑的功能，但使用的时候要在URL中加上如 /admin这样的前缀。
+因此我们可以创建名为 admin的子应用，我们可以用add_subapp()来完成:
+```
+admin = web.Application()
+# setup admin routes, signals and middlewares
+
+app.add_subapp('/admin/', admin)
+```
+
+主应用和子应用间的中间件和信号是一个环一样的结构。
+也就是说如果请求'/admin/something'会先调用主应用的中间件然后在调用子应用（admin.middlewares）的中间件。
+信号也同样。
+所有注册的基础信号如on_startup，on_shutdown，on_cleanup都会给子应用也注册一份。只不过传递的参数是子应用。
+子应用也可以嵌套子应用。
+子应用也可以使用Url反向引用，只不过会带上前缀:
+```
+admin = web.Application()
+admin.router.add_get('/resource', handler, name='name')
+
+app.add_subapp('/admin/', admin)
+
+url = admin.router['name'].url_for()
+```
+这样我们得到的url是 '/admin/resource'。
+如果主应用想得到子应用的Url反向引用，可以这样:
+```
+admin = web.Application()
+admin.router.add_get('/resource', handler, name='name')
+
+app.add_subapp('/admin/', admin)
+app['admin'] = admin
+
+async def handler(request):  # main application's handler
+    admin = request.app['admin']
+    url = admin.router['name'].url_for()
+```
+
+# 流控制
+aiohttp.web有复杂的流控制机制来应对底层TCP套接字写入缓存。
+问题是: 默认情况下TCP套接字使用Nagle算法来输出缓存，但这种算法对于流式数据协议如HTTP不是很理想。
+
+Web服务器的响应是以下几种状态其中一个:
+
+1. CORK（tcp_cork设置为True）。这个选项不会发送一部分TCP/IP帧。当这个选项被（再次）清除时会发送所有已经在队列中的片段帧。因为会把各种小帧聚合起来发送，所以这种方式对发送大量片段数据非常理想。 如果操作系统不支持CORK模式（不管是socket.TCP_CORK还是socket.TCP_NOPUSH）那该模式与Nagle模式一样。一般来说是windows系统不支持此模式。
+
+2. NODELAY（tcp_nodelay设置为True）。这个选项会禁用Nagle算法。选用这个那么无论数据多小都会尽快发出去，即使是很小的数据。该模式对发送少量数据非常理想。
+
+3. Nagle算法（tcp_cork和tcp_nodelay都为False）。该模式会先缓存数据，直到达到预定的数据大小后再一起发送。如果要发送HTTP数据应该避免使用这个模式除非你确定要使用它。
+
+
