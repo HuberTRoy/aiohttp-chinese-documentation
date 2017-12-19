@@ -942,4 +942,144 @@ Web服务器的响应是以下几种状态其中一个:
 
 3. Nagle算法（tcp_cork和tcp_nodelay都为False）。该模式会先缓存数据，直到达到预定的数据大小后再一起发送。如果要发送HTTP数据应该避免使用这个模式除非你确定要使用它。
 
+默认情况下，流数据（StreamResponse）, 标准响应（Response和http异常及其派生类）和websockets（WebSocketResponse）使用NODELAY模式，静态文件处理器使用CORK模式。
+
+可以使用set_tcp_cork()方法和set_tcp_nodelay()方法手动切换。
+
+# Expect头。
+
+aiohttp.web支持使用Expect头。默认是HTTP/1.1 100 Continue，如果Expect头不是"100-continue"则抛出HTTPExpectationFailed异常。你可以自定义Expect头处理器。如果Expect头存在的话则会调用Expect处理器，Expect处理器会先于中间件和路由处理器被调用。Expect处理器可以返回None，返回None则会继续执行（调用中间件和路由处理器）。如果返回的是StreamResponse实例对象，之后请求处理器则使用该返回对象作为响应内容。也可以抛出HTTPException的子类对象。抛出错误的时候之后的处理将不会进行，客户端将会接受一个适当的http响应。
+### 注意：
+如果服务器不能理解或不支持的Expect域中的任何期望值，则服务器必须返回417或其他适当的错误码（4xx状态码）。
+http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.20
+
+如果所有的检查通过，在返回前自定义处理器需要将 HTTP/1.1 100 Continue写入。
+
+下面是一个自定义Expect处理器的例子：
+
+```
+async def check_auth(request):
+    if request.version != aiohttp.HttpVersion11:
+        return
+
+    if request.headers.get('EXPECT') != '100-continue':
+        raise HTTPExpectationFailed(text="Unknown Expect: %s" % expect)
+
+    if request.headers.get('AUTHORIZATION') is None:
+        raise HTTPForbidden()
+
+    request.transport.write(b"HTTP/1.1 100 Continue\r\n\r\n")
+
+async def hello(request):
+    return web.Response(body=b"Hello, world")
+
+app = web.Application()
+app.router.add_get('/', hello, expect_handler=check_auth)
+```
+
+# 自定义资源部署
+使用 UrlDispatcher.register_resource()注册自定义的资源。资源实例必须有AbstractResource接口。
+
+新增于1.2.1版本。
+
+# 优雅的关闭
+停止aiohttp web服务器时只关闭打开的连接时不够的。
+因为可能会有一些websockets或流，在服务器关闭时这些连接还是打开状态。
+aiohttp没有内置如何进行关闭，但开发者可以使用Applicaiton.on_shutdown信号来完善这一功能。
+下面的代码是关闭websocket处理器的例子:
+```
+app = web.Application()
+app['websockets'] = []
+
+async def websocket_handler(request):
+    ws = web.WebSocketResponse()
+    await ws.prepare(request)
+
+    request.app['websockets'].append(ws)
+    try:
+        async for msg in ws:
+            ...
+    finally:
+        request.app['websockets'].remove(ws)
+
+    return ws
+```
+信号处理器差不多这样：
+```
+async def on_shutdown(app):
+    for ws in app['websockets']:
+        await ws.close(code=WSCloseCode.GOING_AWAY,
+                       message='Server shutdown')
+
+app.on_shutdown.append(on_shutdown)
+```
+
+合适的关闭程序要注意以下死点:
+1. 不在接受新的连接。注意调用asyncio.Server.close()和asyncio.Server.wait_closed()来关闭。
+2. 解除Application.shutdown()事件。
+3. 在一小段延迟后调用Server.shutdown()关闭已经开启的连接。
+4. 发出Application.cleanup()信号。
+
+下列代码演示从开始到结束：
+```
+loop = asyncio.get_event_loop()
+handler = app.make_handler()
+f = loop.create_server(handler, '0.0.0.0', 8080)
+srv = loop.run_until_complete(f)
+print('serving on', srv.sockets[0].getsockname())
+try:
+    loop.run_forever()
+except KeyboardInterrupt:
+    pass
+finally:
+    srv.close()
+    loop.run_until_complete(srv.wait_closed())
+    loop.run_until_complete(app.shutdown())
+    loop.run_until_complete(handler.shutdown(60.0))
+    loop.run_until_complete(app.cleanup())
+loop.close()
+```
+
+# 后台任务
+有些时候我们需要执行些异步操作。
+甚至需要在请求处理器处理问题时进行一些后台操作。比如监听消息队列或者其他网络消息/事件资源（ZeroMQ，Redis Pub/Sub，AMQP等）然后接受消息并作出反应。
+例如创建一个后台任务，用于在zmq.SUB套接字上监听ZeroMQ，然后通过WebSocket（app['websockets']）处理并转发接收到的消息给客户端。
+使用Application.on_startup信号注册的后台任务可以让这些任务在应用的请求处理器执行时一并执行。
+比如我们需要一个一次性的任务和两个常驻任务。最好的方法是通过信号注册：
+```
+async def listen_to_redis(app):
+    try:
+        sub = await aioredis.create_redis(('localhost', 6379), loop=app.loop)
+        ch, *_ = await sub.subscribe('news')
+        async for msg in ch.iter(encoding='utf-8'):
+            # Forward message to all connected websockets:
+            for ws in app['websockets']:
+                ws.send_str('{}: {}'.format(ch.name, msg))
+    except asyncio.CancelledError:
+        pass
+    finally:
+        await sub.unsubscribe(ch.name)
+        await sub.quit()
+
+
+async def start_background_tasks(app):
+    app['redis_listener'] = app.loop.create_task(listen_to_redis(app))
+
+
+async def cleanup_background_tasks(app):
+    app['redis_listener'].cancel()
+    await app['redis_listener']
+
+
+app = web.Application()
+app.on_startup.append(start_background_tasks)
+app.on_cleanup.append(cleanup_background_tasks)
+web.run_app(app)
+```
+listen_to_redis()将会一直运行下去。当关闭时发出的on_cleanup信号会调用关闭处理器以关闭它。
+
+# 处理错误页面
+404 NotFound和500 Internal Error之类的错误页面可以看Middlewares章节了解详情，这些都可以通过自定义中间件完成。
+
+# 基于代理部署服务器
 
