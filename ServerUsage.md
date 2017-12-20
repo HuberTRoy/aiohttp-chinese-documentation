@@ -1083,3 +1083,47 @@ listen_to_redis()将会一直运行下去。当关闭时发出的on_cleanup信�
 
 # 基于代理部署服务器
 
+Server Deployment中讨论了基于反向代理服务（像nginx）部署aiohttp来用于生产使用。
+如果使用这种方法，就不要在使用scheme, host和remote了。
+将正确的值配置在代理服务器中，之后不管是使用Forwarded还是使用旧式的 X-Forwarded-For, X-Forwarded-Host, X-Forwarded-Proto HTTP头都是可以的。
+aiohttp默认不会获取forwarded值，因为可能会引起一些安全问题: HTTP客户端也可以自己添加这个值，非常不值得信任。
+这就是为什么aiohttp应该在使用反向代理的自定义中间件中设置forwarded头的原因。
+在中间件中改变scheme，host和remote可以用clone()。
+
+待更新: 添加一个可以很好的配置中间件的第三方项目。
+
+# Swagger 支持
+aiohttp-swagger是一个允许在aiohttp.web项目中使用Swagger-UI的库。
+
+# CORS 支持
+aiohttp.web本身不支持跨域资源共享（Cross-Origin Resource Sharing），但可以用aiohttp_cors。
+
+# 调试工具箱
+开发aiohttp.web应用项目时，aiohttp_debugtoolbar是非常好用的一个调试工具。
+
+可使用pip进行安装：
+```
+$ pip install aiohttp_debugtoolbar
+```
+
+之后将aiohttp_debugtoolbar中间件添加到aiohttp.web.Applicaiton中并调用aiohttp_debugtoolbar.setup()来部署：
+```
+import aiohttp_debugtoolbar
+from aiohttp_debugtoolbar import toolbar_middleware_factory
+
+app = web.Application(middlewares=[toolbar_middleware_factory])
+aiohttp_debugtoolbar.setup(app)
+```
+
+愉快的调试起来吧~。
+
+# 开发工具
+aiohttp-devtools提供几个简化开发的小工具。
+
+可以使用pip安装：
+```
+  $ pip install aiohttp-devtools
+ * ``runserver`` 提供自动重载，实时重载，静态文件服务和aiohttp_debugtoolbar_integration。
+ * ``start`` 是一个帮助做繁杂且必须的创建'aiohttp.web'应用的命令。
+```
+创建和运行本地应用的文档和指南请看aiohttp-devtools。
