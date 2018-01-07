@@ -12,7 +12,7 @@
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/LowLevelServer.md">低级服务器搭建(待完善...)</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/AbstractBaseClasses.md">抽象基类参考(待完善...)</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/WorkWithMultipart.md">使用Multipart(待完善...)</a>
-* <a href="https://aiohttp.readthedocs.io/en/stable/streams.html">流式API参考(待更新...)</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/StreamingAPI.md">流式API参考(待完善...)</a>
 * <a href="https://aiohttp.readthedocs.io/en/stable/api.html">Helpers API参考(待更新...)</a>
 * <a href="https://aiohttp.readthedocs.io/en/stable/logging.html">日志(待更新...)</a>
 * <a href="https://aiohttp.readthedocs.io/en/stable/testing.html">测试(待更新...)</a>
