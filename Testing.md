@@ -343,7 +343,7 @@ class aiohttp.test_utils.**BaseTestServer**(*\*, scheme='http', host='127.0.0.1'
 * scheme(str) - HTTP协议，默认是无保护的“http”。     
 * host(str) - TCP套接字主机，默认是IPv4本地主机（127.0.0.1）。  
 &ensp;&ensp;&ensp; **scheme**    
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 被测试应用的协议，'http'是无保护的，'https'是有TLS加密的。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 被测试应用使用的协议，'http'是无保护的，'https'是有TLS加密的。    
 &ensp;&ensp;&ensp; **host**     
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 用于启动测试服务器的主机名。    
 &ensp;&ensp;&ensp; **port**    
@@ -358,6 +358,104 @@ class aiohttp.test_utils.**BaseTestServer**(*\*, scheme='http', host='127.0.0.1'
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;停止和结束开启的测试服务器。    
 &ensp;&ensp;&ensp; *make_url(path)*    
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回给定path的绝对URL。
+
+class aiohttp.test_utils.**RawTestServer**(*handler, \*, scheme="http", host="127.0.0.1"*)      
+&ensp;&ensp;&ensp;  低级测试服务器（派生于BaseTestServer）     
+&ensp;&ensp;&ensp;  **参数：**    
+* handler - 用于处理web请求的协同程序。处理器需要接受aiohttp.web.BaseRequest实例并且返回响应实例（StreamResponse或Response之类的）。对于非200的HTTP响应，处理器可以抛出HTTPException异常。     
+* scheme(str) - HTTP协议，默认是无保护的“http”。
+* host(str) -  TCP套接字主机，默认是IPv4本地主机（127.0.0.1）。     
+class aiohttp.test_utils.**TestServer**(*app, \*, scheme="http", host="127.0.0.1"*)    
+&ensp;&ensp;&ensp;  用于启动应用程序的测试服务器（派生于BaseTestServer）。    
+&ensp;&ensp;&ensp; **参数：**    
+* app - 要启动的aiohttp.web.Application实例对象。
+* scheme(str) - HTTP协议，默认是无保护的“http”。
+* host(str) - TCP套接字主机，默认是IPv4本地主机（127.0.0.1）。
+&ensp;&ensp;&ensp; app    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 要启动的aiohttp.web.Application实例对象。
+
+# 测试客户端。
+class aiohttp.test_utils.**TestClient**(*app_or_server, \*, loop=None, scheme='http', host='127.0.0.1'*)    
+&ensp;&ensp;&ensp; 一个用于制造请求来测试服务器的测试客户端。    
+&ensp;&ensp;&ensp; **参数：**    
+* app_or_server - BaseTestServer实例对象，用于向其发起请求。如果是aiohttp.web.Application对象，会为应用程序自动创建一个TestServer。  
+* cookie_jar - 可选的aiohttp.CookieJar实例对象，搭配CookieJar(unsafe=True)更佳。   
+* scheme (str) - HTTP协议，默认是无保护的“http”。
+* loop (asyncio.AbstractEventLoop) - 需要使用的事件循环。
+* host (str) - TCP套接字主机，默认是IPv4本地主机（127.0.0.1）。
+&ensp;&ensp;&ensp; scheme    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 被测试应用的使用的协议，'http'是无保护的，'https'是有TLS加密的。      
+&ensp;&ensp;&ensp; host    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 用于启动测试服务器的主机名。   
+&ensp;&ensp;&ensp; port     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 用于启动测试服务器的端口（随机的）。   
+&ensp;&ensp;&ensp; server    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; BaseTestServer测试服务器实例，一般与客户端连用。    
+&ensp;&ensp;&ensp; session    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 内部aiohttp.ClientSession对象.    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 不同于TestClient中的那样，客户端会话的请求不会自动将url查询放入主机名中，需要传入一个绝对路径。     
+&ensp;&ensp;&ensp; coroutine start_server(\*\*kwargs)    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 开启测试服务器。  
+&ensp;&ensp;&ensp; coroutine close()         
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 关闭在运行的服务器。    
+&ensp;&ensp;&ensp; make_url(path)     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回给定path的绝对URL。     
+&ensp;&ensp;&ensp;coroutine request(method, path, \*args, \*\*kwargs)    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 将请求发送给测试服务器。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 除了loop参数被测试服务器所使用的循环覆盖外，该接口与asyncio.ClientSession.request()相同。    
+&ensp;&ensp;&ensp; coroutine get(path, \*args, \*\*kwargs)      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 执行HTTP GET请求。    
+&ensp;&ensp;&ensp; coroutine post(path, \*args, \*\*kwargs)     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 执行HTTP POST请求。     
+&ensp;&ensp;&ensp; coroutine options(path, \*args, \*\*kwargs)     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 执行HTTP OPTIONS请求。      
+&ensp;&ensp;&ensp; coroutine head(path, \*args, \*\*kwargs)     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 执行HTTP HEAD请求。     
+&ensp;&ensp;&ensp; coroutine put(path, \*args, \*\*kwargs)     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 执行HTTP PUT请求。      
+&ensp;&ensp;&ensp; coroutine patch(path, \*args, \*\*kwargs)      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 执行HTTP PATCH请求。      
+&ensp;&ensp;&ensp; coroutine delete(path, \*args, \*\*kwargs)      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 执行HTTP DELETE请求。    
+&ensp;&ensp;&ensp; coroutine ws_connect(path, \*args, \*\*kwargs)      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 初始化websocket连接。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  该api与aiohttp.ClientSession.ws_connect()相同。     
+
+# 其他工具包
+aiohttp.test_utils.make_mocked_coro(return_value)    
+&ensp;&ensp;&ensp; 创建一个协程mock。    
+&ensp;&ensp;&ensp; 其表现形式像一个协程一般，作用是返回要返回的值（return_value）。而同时又是一个mock对象，你可以使用一般的Mock来测试它:
+```
+mocked = make_mocked_coro(1)
+assert 1 == await mocked(1, 2)
+mocked.assert_called_with(1, 2)
+```
+&ensp;&ensp;&ensp; **参数：**  return_value - 当mock对象被调用时返回的值。     
+&ensp;&ensp;&ensp; **像协程一样返回return_value的值。**    
+
+aiohttp.test_utils.unused_port()    
+&ensp;&ensp;&ensp; 返回一个可以用在IPv4 TCP协议上的还没有被使用的端口。
+&ensp;&ensp;&ensp; 返回一个可以使用端口值（类型为整数int）。      
+
+aiohttp.test_utils.loop_context(loop_factory=<function asyncio.new_event_loop>)    
+&ensp;&ensp;&ensp; 一个上下文管理器，可以创建一个用于测试目的事件循环。     
+&ensp;&ensp;&ensp; 用于进行测试循环的创建和清理工作。   
+
+aiohttp.test_utils.setup_test_loop(loop_factory=<function asyncio.new_event_loop>)    
+&ensp;&ensp;&ensp;  创建并返回asyncio.AbstractEventLoop实例对象。    
+&ensp;&ensp;&ensp;  如果要调用它，需要在结束循环时调用下teardown_test_loop.     
+
+aiohttp.test_utils.teardown_test_loop(loop)    
+&ensp;&ensp;&ensp;  销毁并清除setup_test_loop所创建的event_loop。    
+&ensp;&ensp;&ensp; **参数：**   loop(asyncio.AbstractEventLoop) - 需要拆除的循环。
+
+
+
+
+
+
+
+
 
 
 

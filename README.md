@@ -1,6 +1,6 @@
 # aiohttp 中文文档
 
-自己试着翻译，如有不当的地方请及时反馈~。:wink:
+自己试着翻译，如有不当的地方请随时反馈~。:wink:
 
 ## 目录:
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/Introduce.md">简介及快速上手</a>
@@ -15,7 +15,7 @@
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/StreamingAPI.md">流式API参考(待完善...)</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/Helpers.md">Helpers API参考(待完善...)</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/Logging.md">日志(待完善...)</a>
-* <a href="https://aiohttp.readthedocs.io/en/stable/testing.html">测试(待更新...)</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/Testing.md">测试(待完善...)</a>
 * <a href="https://aiohttp.readthedocs.io/en/stable/deployment.html">服务器部署(待更新...)</a>
 * <a href="https://aiohttp.readthedocs.io/en/stable/faq.html">常见问题汇总(待更新...)</a>
 * <a href="https://aiohttp.readthedocs.io/en/stable/external.html">外部资源包(待更新...)</a>
