@@ -10,7 +10,7 @@ AbstractRouter只有一个必须（覆盖）的方法： AbstractRouter.resolve(
 如果所请求的URL的处理器发现AbstractMatchInfo.handler()所返回的是web处理器，那AbstractMatchInfo.http_exception则为None。  
 否则的话AbstractMatchInfo.http_exception会是一个HTTPException实例，如404: NotFound 或 405: Method Not Allowed。如果调用AbstractMatchInfo.handler()则会抛出http_exception。  
 
-*class aiohttp.abc.AbstractRouter*
+*class aiohttp.abc.AbstractRouter*  
 &ensp;&ensp;&ensp;此类是一个抽象路由类，可以指定aiohttp.web.Application中的router参数来传入此类的实例，使用aiohttp.web.Application.router来查看返回.  
 &ensp;&ensp;&ensp;*coroutine **resolve**(request)*    
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;URL处理方法。该方法是一个抽象方法，需要被继承的类所覆盖。    
