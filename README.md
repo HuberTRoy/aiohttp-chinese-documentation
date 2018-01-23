@@ -20,7 +20,7 @@
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md">常见问题汇总(待完善...)</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ExternalSources.md">外部资源包(待完善...)</a>
 * <a href="https://aiohttp.readthedocs.io/en/stable/essays.html">参考文献(待更新...)</a>
-* <a href="https://aiohttp.readthedocs.io/en/stable/contributing.html">贡献须知(待更新...)</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/Contributing.md">贡献须知(待完善...)</a>
 * <a href="https://aiohttp.readthedocs.io/en/stable/changes.html">更新日志(待更新...)</a>
 * <a href="https://aiohttp.readthedocs.io/en/stable/glossary.html">相关名词释义(待更新...)</a>
 * <a href="https://aiohttp.readthedocs.io/en/stable/toc.html">总目录(待更新...)</a>
