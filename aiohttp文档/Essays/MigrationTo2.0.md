@@ -35,7 +35,7 @@ aiohttp并不能自动编码分块内容，即使指定了`transfer-encoding`头
 * - - - - ServerFingerprintMismatch - 服务器指纹不匹配的异常。
 * - ClientPayloadError - 此错误只会在读取响应载体时发生以下错误: 无效的压缩信息，不合理的分块编码或长度不匹配的内容才会被抛出。
 
-# 客户端payload（form-data）
+### 客户端payload（form-data）
 为了整合form-data/payload(载体)的处理，引入了一个新的Payload系统。它可以执行现存类型的处理，也可以处理由用户定义的类型。
 `FormData.__call__`不再需要`encoding`参数，返回的内容也由迭代器对象或字节变为Payload实例。对于标准类型如`str`，`byte`，`io.IOBase`，·`StreamReader`，`DataQueue`，aiohttp都提供相关payload适配器。
 生成器不能再作为数据生成器提供，你可以用streamer代替。比如，上传文件可以这样:
