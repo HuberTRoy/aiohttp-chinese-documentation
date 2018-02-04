@@ -235,6 +235,42 @@ async def multipart(self, *, reader=aiohttp.multipart.MultipartReader):
 ### 注意
     用户代码中不应存在调用release()，aiohttp.web会在内部自行处理。     
 
-    
+
+*class aiohttp.web.Request*
+&ensp;&ensp;&ensp; 在web处理器中接受请求信息的Request类。      
+&ensp;&ensp;&ensp; 所有的处理器的第一个参数都要接受Request类的实例对象。      
+&ensp;&ensp;&ensp; 该类派生于BaseRequest，支持父类中所有的方法和属性。还有几个额外的：
+&ensp;&ensp;&ensp; **match_info**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回AbstractMatchInfo实例对象，内容是路由解析的结果，该属性只读。     
+
+### 注意
+    属性的具体类型由路由决定，如果app.router是UrlDispatcher,则该属性包含的是UrlMappingMatchInfo实例对象。
+
+&ensp;&ensp;&ensp; **app**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回一个用于调用请求处理器的应用（Application）实例对象。
+
+
+### 注意
+    用户不要手动创建Request实例对象，aiohttp.web会自动完成这些操作。但你可以使用clone()方法来进行一些修改，比如路径和方法之类的修改。
+
+## 响应类
+目前为止，aiohttp.web提供三个不同的响应类: `StreamResponse`, `Response`和`FileResponse`。      
+通常你要使用的是第二个也就是`Response`。`StreamResponse`用于流数据，`Response`会将HTTP主体保存在一个属性中，以正确的Content-Length头信息发送自己的内容。       
+为了设计考虑，`Response`的父类是`StreamResponse`。      
+如果请求支持keep-alive的话，响应也是同样支持的，无需其他操作。    
+当然，你可以使用`force_close()`来禁用keep-alive。     
+从web处理器中进行响应通常的做法是返回一个`Response`实例对象:
+```
+def handler(request):
+    return Response("All right!")
+
+```
+
+
+
+
+
+
+
 
 
