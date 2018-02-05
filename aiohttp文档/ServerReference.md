@@ -266,10 +266,206 @@ def handler(request):
 
 ```
 
+### StreamResponse
+*class aiohttp.web.StreamResponse(\*, status=200, reason=None)*      
+### 注:
+```
+源码中参数多了一个headers。
+```
+&ensp;&ensp;&ensp; 用于HTTP响应处理的基础类。    
+&ensp;&ensp;&ensp; 提供几个如设置HTTP响应头，cookies，响应状态码和写入HTTP响应主体等方法。      
+&ensp;&ensp;&ensp; 你需要知道关于响应的最重要的事是——有限状态机。       
+&ensp;&ensp;&ensp; 也就是说你只能在调用`prepare()`之前操作头信息，cookies和状态码。     
+&ensp;&ensp;&ensp; 一旦你调用了`prepare()`，之后任何有关操作都会导致抛出`RuntimeError`异常。    
+&ensp;&ensp;&ensp; 在调用`write_eof()`之后任何`write()`操作也是同样禁止的。    
+&ensp;&ensp;&ensp; **参数**：      
+* status (int) - HTTP状态码，默认200。      
+* reason (int) - HTTP原因（reason）。如果该参数为None，则会根据状态码参数的值进行计算。其他情况请传入用于说明状态码的字符串。     
+&ensp;&ensp;&ensp;**prepared**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;如果`prepare()`已被调用过，则返回True否则返回False。该属性只读。新增于0.18版本。       
 
+&ensp;&ensp;&ensp; **task**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个承载请求处理的任务。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 在关闭服务器时对于那些需要长时间运行的请求（流内容，长轮询或web-socket）非常有用。 新增于1.2版本。     
 
+&ensp;&ensp;&ensp; **status**    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回HTTP响应状态码，默认是200，该属性只读。       
 
+&ensp;&ensp;&ensp; **reason**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回HTTP状态码的说明字符串，该属性只读。 
 
+&ensp;&ensp;&ensp; **set_status(status, reason=None)**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 设置状态码和说明字符串。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果不设置说明字符串则自动根据状态码计算。   
+
+&ensp;&ensp;&ensp; **keep_alive**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 默认复制Request.keep_alive的值，该属性只读。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 可以通过调用`force_close()`来设为False。    
+
+&ensp;&ensp;&ensp; **force_close()**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 禁止keep-alive连接。不过禁止后没有方法再次开启了。   
+
+&ensp;&ensp;&ensp; **compression**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果允许压缩则返回True，否则返回False。该属性只读。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 默认是False。       
+
+&ensp;&ensp;&ensp; **enable_compression(force=None)**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 开启压缩。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; force如果没有设置则使用的压缩编码从请求的`Accept-Encoding`头信息中选择。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果force设置了则不会管`Accept-Encoding`的内容。    
+
+&ensp;&ensp;&ensp; **chunked**        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 指代是否使用了分块编码，该属性只读。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 可以通过调用`enable_chunked_encoding()`开启分块编码。      
+
+&ensp;&ensp;&ensp; **enable_chunked_encoding()**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 允许响应使用分块编码。 开启之后没有方法关闭它。允许之后，每次`write()`都会编码进分块中。
+
+### 警告
+    分块编码只能在HTTP/1.1中使用。    
+    content_length和分块编码是相互冲突的。
+
+&ensp;&ensp;&ensp; **headers**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 携带HTTP头信息的CIMultiDict实例对象。   
+
+&ensp;&ensp;&ensp; **cookies**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 携带cookies信息的http.cookies.SimpleCookie实例对象。      
+
+### 警告
+    直接使用Set-Cookie头信息设置cookie信息会被显式设置cookie操作所覆盖。    
+    我们推荐使用cookies，set_cookie()，del_cookie()进行cookie相关操作。    
+
+&ensp;&ensp;&ensp; **set_cookie(name, value, \*, path='/', expires=None, domain=None, max_age=None, secure=None, httponly=None, version=None)**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 方便设置cookies，允许指定一些额外的属性，如max_age等。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：
+* name (str) - cookie名称。   
+* value (str) - cookie值（如果是其他类型的话会尝试转换为str类型）
+* expires - 过期时间（可选）。
+* domain (str) - cookie主域（可选）。
+* max_age (int) - 定义cookie的生命时长，以秒为单位。该参数为非负整数。在经过这些秒后，客户端会抛弃该cookie。如果设置为0则表示立即抛弃。     
+* path (str) - 设置该cookie应用在哪个路径上（可选，默认是'/'）。
+* secure (bool) - 该属性（没有任何值）会让用户代理使用安全协议。用户代理（或许会在用户控制之下）需要决定安全等级，在适当的时候考虑使用“安全”cookie。是不是要使用“安全”要考虑从服务器到用户代理的这段历程，“安全”协议的目的是保证会话在安全情况下进行（可选）。
+* httponly (bool) - 如果要设置为HTTP only则为True（可选）。   
+* version (int) - 一个十进制数，表示使用哪个版本的cookie管理（可选，默认为1）。
+
+### 警告
+    在HTTP 1.1版本中，expires已不再赞成使用，请使用更简单的 max-age来设置，但IE6,7,8并不支持max-age。
+
+&ensp;&ensp;&ensp; **del_cookie(name, \*, path='/'. domain=None)**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 删除某cookie。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：
+* name (str) - cookie名称。 
+* domain (str) - cookie主域（可选）。
+* path (str) - 该cookie的路径（可选，默认是'/'）。
+&ensp;&ensp;&ensp; 1.0版本修改内容: 修复对IE11以下版本的过期时间支持。    
+
+&ensp;&ensp;&ensp; **content_length**    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 响应中的Content-Length头信息。    
+
+&ensp;&ensp;&ensp; *content_type***     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 响应中Content-Type中设置的内容部分。       
+
+&ensp;&ensp;&ensp; **charset**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 响应中Content-Type中设置的编码部分。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该值会在调用时被转成小写字符。 
+
+&ensp;&ensp;&ensp; **last_modified**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 响应中的Last-Modified头信息。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该属性接受原始字符串，datetime.datetime对象，Unix时间戳（整数或浮点数），None则表示不设置。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 注: 源代码中该方法接受一个参数，文档中并没有标明。下面是源代码:
+```
+    @last_modified.setter
+    def last_modified(self, value):
+        if value is None:
+            self.headers.pop(hdrs.LAST_MODIFIED, None)
+        elif isinstance(value, (int, float)):
+            self.headers[hdrs.LAST_MODIFIED] = time.strftime(
+                "%a, %d %b %Y %H:%M:%S GMT", time.gmtime(math.ceil(value)))
+        elif isinstance(value, datetime.datetime):
+            self.headers[hdrs.LAST_MODIFIED] = time.strftime(
+                "%a, %d %b %Y %H:%M:%S GMT", value.utctimetuple())
+        elif isinstance(value, str):
+            self.headers[hdrs.LAST_MODIFIED] = value
+```
+
+&ensp;&ensp;&ensp; **tcp_cork**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果该属性为True则把底层传输端口设置为TCP_CORK(Linux)或TCP_NOPUSH(FreeBSD和MacOSX)。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 使用set_tcp_cork()来为该属性设置新值。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 默认为False。     
+
+&ensp;&ensp;&ensp; **set_tcp_cork(value)**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 设置tcp_cork的值。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果为True则会清除tcp_nodelay。   
+
+&ensp;&ensp;&ensp; **tcp_nodelay**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果该属性为True则把底层传输端口设置为TCP_NODELAY。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 使用set_tcp_nodelay()来为该属性设置新值。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 默认是True。     
+
+&ensp;&ensp;&ensp; **set_tcp_nodelay(value)**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 设置tcp_nodelay的值。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果为True则会清除tcp_cork。     
+
+&ensp;&ensp;&ensp; *corotine prepare(request)*     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**： request (aiohttp.web.Request) - HTTP请求对象，要响应的对象。  
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 会发送HTTP头信息出去。 在调用了该方法之后你就不要在修改任何头信息的数据了。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法同时会调用on_response_prepare信号所连接的处理器。   
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于0.18版本。    
+
+&ensp;&ensp;&ensp; **write(data)**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 发送byte-ish数据，该数据作为响应主体的一部分。 
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 需要在此之前调用`prepare()`。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果data不是字节（bytes），字节数组（bytearray）或内存查看对象（memoryview）则会抛出`TypeError`异常。   
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果`prepare()`没有调用则会抛出`RuntimeError`异常。   
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果`write_eof()`已经被调用则会抛出`RuntimeError`异常。
+
+&ensp;&ensp;&ensp; *coroutine drain()*     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法可以让底层传输端口的写缓存器有机会被刷新。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 用在写操作时：
+```
+resp.write(data)
+await resp.drain()
+```
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用 `drain()`能让事件循环安排写和刷新缓存器的操作。尤其是在写了一个很大的数据时，调用（其他）write()时协程不会被启动。
+
+&ensp;&ensp;&ensp; *coroutine write_eof()*      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个可以作为HTTP响应结束标志的协程方法。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果需要的话，内部会在完成请求处理后调用这个方法。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用`write_eof()`后，任何对响应对象的操作都是禁止的。   
+
+### Response
+
+*class aiohttp.web.Response(\*, status=200, headers=None, content_type=None, charset=None, body=None, text=None)*     
+### 注：
+```
+参数方面文档中与源码不符，源码中如下:
+Response(*, body=None, status=200, reason=None, text=None, headers=None, content_type=None, charset=None)
+```
+&ensp;&ensp;&ensp; 最常用的响应类，继承于`StreamResponse`。     
+&ensp;&ensp;&ensp; body参数用于设置HTTP响应主体。   
+&ensp;&ensp;&ensp; 实际发送body发生在调用write_eof()时。     
+&ensp;&ensp;&ensp; **参数**：      
+* body (bytes) - 响应主体。      
+* status (int) - HTTP状态码，默认200。
+* headers (collections.abc.Mapping) - HTTP 头信息，会被添加到响应里。 
+* text (str) - 响应主体。
+* content_type (str) - 响应的内容类型。如果有传入text参数的话则为`text/plain`，否则是`application/octet-stream`。
+* charset (str) - 响应的charset。如果有传入text参数则为`utf-8`，否则是None。   
+&ensp;&ensp;&ensp; **body**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 存储响应内容或者叫响应主体，该属性可读可写，类型为bytes。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 设置body会重新计算content_length的值。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 设置body为None会将content_length也一并设置为None，也就是不写入Content-Length HTTP头信息。     
+
+&ensp;&ensp;&ensp; **text**    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 存储响应内容（响应主体），该属性可读可写，类型为str。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 设置text会重新计算content_length和body的值。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 设置text为None会将content_length也一并设置为None，也就是不写入Content-Length HTTP头信息。    
+
+### WebSocketResponse
+*class aiohttp.web.WebSocketResponse(\*, timeout=10.0, receive_timeout=None, autoclose=True, autoping=True, heartbeat=None, protocols=(), compress=True)*      
+&ensp;&ensp;&ensp; 用于进行服务端处理websockets的类。       
+&ensp;&ensp;&ensp; 调用`prepare()`后你就不能在使用`write()`方法了，但你仍然可以与websocket客户端通过`send_str()`, `receive()`等方法沟通。     
+&ensp;&ensp;&ensp; 新增于 1.3.0版本。     
 
 
 
