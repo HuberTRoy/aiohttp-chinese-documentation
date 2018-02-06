@@ -466,6 +466,285 @@ Response(*, body=None, status=200, reason=None, text=None, headers=None, content
 &ensp;&ensp;&ensp; 用于进行服务端处理websockets的类。       
 &ensp;&ensp;&ensp; 调用`prepare()`后你就不能在使用`write()`方法了，但你仍然可以与websocket客户端通过`send_str()`, `receive()`等方法沟通。     
 &ensp;&ensp;&ensp; 新增于 1.3.0版本。     
+&ensp;&ensp;&ensp; 为了支持缓慢的websockets所带来的背压（back-pressure，服务器达到可连接的上限，而这时又有新的客户端请求连接就会出现背压。具体可看<a href="https://www.zhihu.com/question/49618581?from=profile_question_card">知乎中的解释</a>）现象，相关方法都被设计成协程方法。默认写缓存的大小为64K。
+&ensp;&ensp;&ensp; **参数**：     
+* autoping (bool) - 自动向发送了PING消息的客户端发送PONG消息，以及自动处理客户端的PONG响应。需要注意的是该方法不会自动向客户端发送PING消息，你需要自己调用ping()方法实现。新增于1.3.0版本。       
+* heartbeat (float) - 每一次心跳都发送ping消息并等待pong消息，如果没有接收到pong响应则关闭连接。     
+* receive_timeout (float) - 接收操作的超时时间。默认是None也就是不限时间。      
+* compress (float) - 允许每一次消息都使用deflate扩展。传入False禁止此功能。默认是True。（文档中应该写错啦，不应该是float，应该是bool，或者也应该是int（False和True对应0和1））
+&ensp;&ensp;&ensp; 新增于 0.19版本的内容: 该类支持`async for`语句来对即将到来的消息进行迭代:
+```
+ws = web.WebSocketResponse()
+await ws.prepare(request)
+
+async for msg in ws:
+    print(msg.data)
+``` 
+&ensp;&ensp;&ensp;  *coroutine prepare(request)*     
+&ensp;&ensp;&ensp; &ensp;&ensp;&ensp;  开启websocket。调用此方法后你就可以使用其他的websockets方法了。    
+&ensp;&ensp;&ensp; &ensp;&ensp;&ensp;  **参数**： request (aiohttp.web.Request) - HTTP 请求对象，要响应的对象。     
+&ensp;&ensp;&ensp; &ensp;&ensp;&ensp;  如果websocket握手失败将抛出`HTTPException`异常。       
+&ensp;&ensp;&ensp; &ensp;&ensp;&ensp;  新增于 0.18版本。    
+
+&ensp;&ensp;&ensp;  **can_prepare(request)**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 检测这个请求是否能够开启websocket。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果`can_prepare()`执行成功，则`prepare()`也会执行成功。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**： request (aiohttp.web.Request) - HTTP请求对象，要响应的对象。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回WebSocketReady实例对象。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果成功的话，WebSocketReady.ok为True，WebSocketReady.protocol是websocket的子协议，由客户端传递被服务端所接受（一个由WebSocketResponse构造函数所产生的协议序列）。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果客户端和服务器端的子协议不一致，WebSocketReady.protocol则为None。
+
+### 注意
+    该方法不会抛出任何异常。
+
+&ensp;&ensp;&ensp; **closed**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果连接已经关闭或正在关闭则为True。这时CLOSE消息已经从peer中接受到了。该属性只读。     
+
+&ensp;&ensp;&ensp; **close_code**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; peer所发送的关闭代码。如果连接是打开的则为None。该属性只读。      
+
+&ensp;&ensp;&ensp; **protocol**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; WebSocket子协议，调用`start()`后才会选择。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果客户端和服务器端的子协议不一致，则为None。     
+
+&ensp;&ensp;&ensp; **exception()**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回最后发生的异常，或者None。     
+
+&ensp;&ensp;&ensp; **ping(message=b'')**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 向peer发送PING消息。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**： message - 可选ping消息载体，str（会被转换成utf-8编码的bytes）或者bytes。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果连接未开启或已关闭则抛出`RuntimeError`异常。    
+
+&ensp;&ensp;&ensp; **pong(message=b'')**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 发送迷之PONG消息到peer。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：message - 可选pong消息载体，str（会被转换成utf-8编码的bytes）或者bytes。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果连接未开启或已关闭则抛出`RuntimeError`异常。       
+
+&ensp;&ensp;&ensp;*coroutine send_str(data)*     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 向peer发送TEXT(文本)消息。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：data (str) - 要发送的数据。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **可能抛出的异常**：
+* RuntimeError - 如果连接未开启或已关闭则抛出。
+* TypeError - 如果data不是字符串（str）则抛出。
+
+&ensp;&ensp;&ensp; *coroutine send_bytes(data)*    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 向peer发送BINARY(二进制)消息。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**: data - 要发送的数据。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **可能抛出的异常**：
+* RuntimeError - 如果连接未开启或已关闭则抛出。
+* TypeError - 如果data不是字节（bytes），字节数组（bytearray）或内存查看对象（memoryview）则会抛出。
+
+&ensp;&ensp;&ensp; *coroutine send_json(data, \*, dumps=json.dumps)*     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 向peer发送JSON字符串。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：
+* data - 待发送的数据。    
+* dumps(callable) - 任何接受某对象并返回JSON字符串的可调用对象（默认是json.dumps()）。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **可能抛出的异常**： 
+* RuntimeError - 如果连接未开启或已关闭则抛出。
+* ValueError - 如果data不是序列化对象则会抛出。
+* TypeError - 如果由dumps参数所传进的对象处理后的值不是str则会抛出。   
+
+&ensp;&ensp;&ensp; *corotine close(\*, code=1000, message=b'')*       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个初始化关闭握手消息的协程方法。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 不同任务中的close()调用会被保留。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：    
+* code(int) - 关闭代码。   
+* message - 可选的pong消息载体，str(会被转换为utf-8编码的bytes)或bytes。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **可能抛出的异常**： 
+* RuntimeError - 如果连接未开启则抛出。
+
+&ensp;&ensp;&ensp;  *coroutine receive(timeout=None)*      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 等待peer即将发来的数据消息并返回它的协程方法。   
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法在PING，PONG和CLOSE处理时都有调用，但并不返回。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法在内部会执行ping-pong游戏和closing握手。    
+### 注意
+    该方法只能在请求处理任务中被调用。 
+
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**： timeout - 接受操作的超时时间。会覆盖响应中receive_timeout属性的值。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回WSMessage实例对象。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果连接未开启则抛出`RuntimeError`异常。     
+
+&ensp;&ensp;&ensp; *coroutine receive_str(\*, timeout=None)*     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用`receive()`方法，并判断其消息类型是否为TEXT(文本)。     
+### 注意
+    该方法只能在请求处理任务中被调用。
+
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**： timeout - 接受操作的超时时间。会覆盖响应中receive_timeout属性的值。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回peer发来的消息数据。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果消息类型是BINARY则会抛出`TypeError`异常。      
+
+&ensp;&ensp;&ensp; *coroutine receive_bytes(\*, timeout=None)*        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用`receive()`方法，并判断其消息类型是否为BINARY(二进制)。      
+### 注意 
+    该方法只能在请求处理任务中被调用。
+
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**： timeout - 接受操作的超时时间。会覆盖响应中receive_timeout属性的值。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回peer发来的消息数据。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果消息类型是TEXT则会抛出`TypeError`异常。      
+
+&ensp;&ensp;&ensp; *coroutine receive_json(\*, loads=json.loads,timeout=None)*        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用`receive_str()`方法，并将JSON字符串转换为Python字典（dict）。      
+### 注意 
+    该方法只能在请求处理任务中被调用。
+
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**： 
+* loads (callable) - 任何接受str并返回JSON内容的可调用对象（默认是json.loads()）。
+* timeout - 接受操作的超时时间。会覆盖响应中receive_timeout属性的值。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回解析JSON后的dict对象。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **可能抛出的异常**：
+* TypeError - 如果消息类型为BINARY则会抛出。
+* ValueError - 如果消息数据并不是合法的JSON数据则会抛出。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法新增于0.22版本。
+
+### 扩展
+    WebSockets处理。
+
+### WebSocketReady
+*class aiohttp.web.WebSocketReady*       
+&ensp;&ensp;&ensp; `WebSocketResponse.can_prepare()`所返回的对象。   
+&ensp;&ensp;&ensp; 可使用bool类型判断：
+```
+if not await ws.can_prepare(...):
+    cannot_start_websocket()
+```
+
+&ensp;&ensp;&ensp; **ok**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果websocket可以建立则返回True，否则是False。     
+
+&ensp;&ensp;&ensp; **protocol**      
+&ensp;&ensp;&ensp; 表示websocket选择的子协议，类型为str。      
+
+### json_response
+*aiohttp.web.json_response([data, ]\*, text=None, body=None, status=200, reason=None, headers=None, content_type='application/json', dumps=json.dumps)*      
+&ensp;&ensp;&ensp; 返回内容为JSON数据（默认由json.dumps()转换），并带有'application/json'信息的响应对象。     
+
+## 应用和路由
+### 应用
+应用（Application）是web服务器的代名词。       
+要得到完整地可工作例子，你必须创建应用（Application），路由表（Router）并且使用`Server`创建服务器套接字作为协议工厂。*Server*可以使用`Application.make_handler()`来创建。      
+应用(Application)中包含一个路由实例对象和一个在应用运行期间被调用的回调列表。       
+同时应用(Application)还是一个类字典对象，所以你可以用它作为全局共享数据容器，你可以在处理器中使用`Request.app`来访问它：
+```
+app = Application()
+app['database'] = await aiopg.create_engine(**db_config)
+
+async def handler(request):
+    with (await request.app['database']) as conn:
+        conn.execute("DELETE * FROM table")
+```
+尽管它是个类字典对象，你也不能用`Application.copy()`来弄个副本。    
+
+*class aiohttp.web.Application(\*, logger=<default>, router=None, middlewares=(), handler_args=None, client_max_size=1024\*\*2, loop=None, debug=...)*       
+&ensp;&ensp;&ensp; 该类继承于dict。  
+&ensp;&ensp;&ensp; **参数**: 
+* logger - logging.Logger实例对象，用于存储应用程序的日志。默认值为`logging.getLogger("aiohttp.web")`      
+* router - aiohttp.abc.AbstractRouter实例对象，如果是None则默认创建`UrlDispatcher`。  
+* middlewares - 存放中间件工厂的列表，请看Middlewares一节获取详细信息。
+* handler_args - 类字典对象，用于覆盖`Application.make_handler()`中的关键字参数。
+* client_max_size - 客户端请求中携带的数据的最大大小。如果POST请求超过这个值，将会抛出`HTTPRequestEntityTooLarge`异常。     
+* loop - 事件循环。自2.0版本后不再赞成使用：在冻结阶段Loop会被自动设置。     
+* debug - 调试组件。   
+
+&ensp;&ensp;&ensp; **router**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回router实例对象，该属性只读。      
+
+&ensp;&ensp;&ensp; **logger**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回logging.Logger实例对象（用于存储应用程序日志）。      
+
+&ensp;&ensp;&ensp; **loop**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回用于处理HTTP请求的事件循环。     
+
+&ensp;&ensp;&ensp; **debug**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回布尔值，表示debug组件是否开启。    
+
+&ensp;&ensp;&ensp; **on_response_prepare**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个在`StreamResponse.prepare()`执行时发送的信号，触发信号时将请求（request）和响应（response）对象作为参数传递。在某些情况下很有用，比如说，你想为每个响应都添加一个自定义头信息。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 信号处理器需要具有如下特征:
+```
+async def on_prepare(request, response):
+    pass
+```
+
+&ensp;&ensp;&ensp; **on_startup**          
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个在应用程序开启时触发的信号。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 我们可以捕获这个信号来做一些后台任务。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 信号处理器需要具有如下特征：
+```
+async def on_startup(app):
+    pass
+```
+ 
+### 扩展:
+```
+后台任务。
+```
+
+&ensp;&ensp;&ensp; **on_shutdown**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  一个在应用程序关闭时触发的信号。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 我们可以捕获这个信号来做一些对于需要长时间运行的连接的清理工作（websockets和数据流之类的）。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 信号处理器需要具有如下特征：
+```
+async def on_shutdown(app):
+    pass
+```
+当然，用户需要弄清楚哪些web处理器还在工作以及怎么才能正确地结束它们。      
+我们的建议是将那些需要长时间运行的处理器添加到一个列表中并放在Application中。
+
+&ensp;&ensp;&ensp; **on_cleanup**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个在应用程序执行清理时发送的信号。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 我们可以捕获这个信号来优雅的关闭数据库服务器之类的连接。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 信号处理器需要具有如下特征：
+```
+async def on_cleanup(app):
+    pass
+```
+
+&ensp;&ensp;&ensp; **make_handler(loop=None, \*\*kwargs)**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 创建一个处理请求的HTTP协议工厂。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：
+* loop - 用于处理HTTP请求的事件循环。如果该参数为None则使用`asyncio.get_event_loop()`来获取默认事件循环。2.0版本后已不再赞成使用。        
+* tcp_keepalive (bool) - 是否允许`TCP Keep-Alive`。默认为`True`。
+* keepalive_timeout (int) - 关闭`Keep-Alive`连接前所持续的秒数。默认是75（NGINX的默认值）。
+* slow_request_timeout - 缓慢请求的超时时间。默认是0。
+* logger - 自定义logger对象。默认是`aiohttp.log.server_logger`。
+* access_log - 自定义logger对象。默认是`aiohttp.log.access_logger`。
+* access_log_class - access_logger的类。默认是`aiohttp.helpers.AccessLogger`。必须是`aiohttp.abc.AbstractAcessLogger`的子类。
+* access_log_format (str) - 访问日志的字符串格式。默认是`helpers.AccessLogger.LOG_FORMAT`。
+* debug (bool) - 选择调试组件。默认是`False`。为了有效利用`Application.make_handler()`，自1.0版本后不再建议使用该方法中的这个参数。因为`Application`的调试组件应该只有一个。
+* max_line_size (int) - 最大标题行（header line）大小。默认是8190。
+* max_headers (int) - 最大标题(header)大小。默认是32768。
+* max_field_size (int) - 最大标题字段（header field）大小。默认是8190。
+* linegering_time (float) - 当延迟关闭开启时，服务器读取以及忽略从客户端传来的额外信息的最大时间。传入0来禁止延迟关闭。
+* linegering_timeout (float) - 延迟关闭工作时，等待客户端送达额外信息的超时时间。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;你应该把这个方法所返回的结果作为`protocol_factory`传递给`create_server()`：
+```
+loop = asyncio.get_event_loop()
+
+app = Application()
+
+# setup route table
+# app.router.add_route(...)
+
+await loop.create_server(app.make_handler(),
+                         '0.0.0.0', 8080)
+```
+
+&ensp;&ensp;&ensp; *coroutine startup()*      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个会与应用程序的请求处理器一起调用的协程方法。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法的目的是调用on_startup信号所连接的处理器。    
+
+&ensp;&ensp;&ensp; *coroutine shutdown()*     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法应该在服务器正在停止且在（要）调用`cleanup()`前调用。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法会调用on_shutdown信号所连接的处理器。     
+
+&ensp;&ensp;&ensp; *coroutine cleanup()*       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法应该在服务器正在停止且在（要）调用`shutdown()`后调用。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法会调用on_cleanup信号所连接的处理器。      
+
+### 注意
+    Application对象拥有路由属性，但并不拥有add_route()方法。原因是:我们想支持不同的路由部署方式（甚至基于遍历而不是基于url匹配）。
+    由于这个原因，我们有非常细小的AbstractRouter抽象类：这个抽象基类也只有一个AbstractRouter.resolve()协程方法。
+    没有添加路由和倒推路由（由路由名来获得URL）的方法。这些已是路由部署的全部细节了（但是说真的，用这个路由你需要在你的应用程序中自己解决这个问题）。
 
 
 
