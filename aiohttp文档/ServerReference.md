@@ -280,7 +280,8 @@ def handler(request):
 &ensp;&ensp;&ensp; 在调用`write_eof()`之后任何`write()`操作也是同样禁止的。    
 &ensp;&ensp;&ensp; **参数**：      
 * status (int) - HTTP状态码，默认200。      
-* reason (int) - HTTP原因（reason）。如果该参数为None，则会根据状态码参数的值进行计算。其他情况请传入用于说明状态码的字符串。     
+* reason (int) - HTTP原因（reason）。如果该参数为None，则会根据状态码参数的值进行计算。其他情况请传入用于说明状态码的字符串。   
+  
 &ensp;&ensp;&ensp;**prepared**       
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;如果`prepare()`已被调用过，则返回True否则返回False。该属性只读。新增于0.18版本。       
 
@@ -618,7 +619,7 @@ if not await ws.can_prepare(...):
 *aiohttp.web.json_response([data, ]\*, text=None, body=None, status=200, reason=None, headers=None, content_type='application/json', dumps=json.dumps)*      
 &ensp;&ensp;&ensp; 返回内容为JSON数据（默认由json.dumps()转换），并带有'application/json'信息的响应对象。     
 
-## 应用和路由
+## 应用和路由器
 ### 应用
 应用（Application）是web服务器的代名词。       
 要得到完整地可工作例子，你必须创建应用（Application），路由表（Router）并且使用`Server`创建服务器套接字作为协议工厂。*Server*可以使用`Application.make_handler()`来创建。      
@@ -745,6 +746,408 @@ await loop.create_server(app.make_handler(),
     Application对象拥有路由属性，但并不拥有add_route()方法。原因是:我们想支持不同的路由部署方式（甚至基于遍历而不是基于url匹配）。
     由于这个原因，我们有非常细小的AbstractRouter抽象类：这个抽象基类也只有一个AbstractRouter.resolve()协程方法。
     没有添加路由和倒推路由（由路由名来获得URL）的方法。这些已是路由部署的全部细节了（但是说真的，用这个路由你需要在你的应用程序中自己解决这个问题）。
+
+## Server
+一个与`create_server()`兼容的协议工厂。
+*class aiohttp.web.Server*      
+&ensp;&ensp;&ensp; 该类用于创建处理HTTP连接的HTTP协议对象。     
+
+*Server.connections*          
+&ensp;&ensp;&ensp; 一个包含当前已开启的连接的列表。      
+
+*aiohttp.web.request_count*          
+&ensp;&ensp;&ensp; 已处理请求的总数。       
+&ensp;&ensp;&ensp; 新增于 1.0版本。        
+
+*coroutine Server.shutdown(timeout)*        
+&ensp;&ensp;&ensp; 一个用于关闭所有已开启连接的协程方法。       
+
+## Router
+用于将分发URL到特定的处理器，aiohttp.web使用路由来建立联系。       
+路由可以是任何部署了`AbstractRouter`接口的对象。        
+aiohttp.web提供的部署方式为`UrlDispatcher`。       
+`Application`也使用`UrlDispatcher`作为`router()`的默认返回。      
+
+*class aiohttp.web.UrlDispatcher*        
+&ensp;&ensp;&ensp; 最直接地url匹配型路由，同时具有`collections.abc.Mapping`的功能，可以用于访问已命名的路由。       
+&ensp;&ensp;&ensp; 在运行`Application`之前，你应该首先调用`add_route()`和`add_static()`来填写下路由表。       
+&ensp;&ensp;&ensp; 处理器的查找是迭代方式进行的（先进先出顺序）。首先匹配到的路由会被调用对应处理器。        
+&ensp;&ensp;&ensp; 如果在创建路由时你指定了`name`参数，那么这就是一个命名路由了。      
+&ensp;&ensp;&ensp; 命名路由可以调用`app.router[name]`获得，也可以用于检测该名字是否在`app.router`中。        
+
+&ensp;&ensp;&ensp; **add_resource(path, \*, name=None)**
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加一个资源到路由表尾部。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; path可以只是字符串`'/a/b/c'`，也可以带变量`'/a/{var}'`。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：     
+* path (str) - 资源路径。     
+* name (str) - 资源名，可选。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回创建的资源实例（`PlainResource或DynamicResource`）。      
+
+&ensp;&ensp;&ensp; **add_route(method, path, handler, \*, name=None, expect_handler=None)**        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加一个处理器到路由表尾部。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; path可以只是字符串`'/a/b/c'`，也可以带变量`'/a/{var}'`。        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 注意: 如果处理器是一个普通函数，aiohttp会在内部将其转换为协程函数。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：
+* method (str) - 该路由的HTTP方法。应是 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS' 其中的一个，或者是'\*'来表示所有方法。该方法大小写不敏感，'get'等于'GET'。             
+* paht (str) - 路由路径。需要以斜线('/')开头。
+* handler (callable) - 路由处理器。     
+* name (str) - 路由名称，可选。
+* expect_handler (coroutine) - 异常处理器，可选。
+
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回`PlainResource或DynamicResource`实例对象。        
+
+&ensp;&ensp;&ensp; **add_routes(routes_table)**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 从路由表（routes_table）中注册路由。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 路由表（routes_table）需要是包含`RouteDef`组件或`RouteTableDef`的列表。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于2.3版本。      
+
+&ensp;&ensp;&ensp; **add_get(path, handler, \*, name=None, allow_head=True, \*\*kwargs)**              
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加`GET`方法路由的快捷方式。等价于调用`add_route(method='GET')`。        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果`allow_head`是True（默认），也会添加一个HEAD方法到这个路由上。        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果有name，HEAD的路由会被添加一个'-head'后缀。举个栗子：`router.add_get(path, handler, name='route')`会添加两个路由：一个是GET方法名为'route'，另一个是HEAD方法名为'route-head'。        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法新增于1.0版本。        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 2.0版本新增内容: 添加allow_head参数。
+
+&ensp;&ensp;&ensp; **add_post(path, handler, \*\*kwargs)**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加'POST'方法路由的快捷方式。等价于调用`add_route(method='POST')`。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于1.0版本。      
+
+&ensp;&ensp;&ensp; **add_put(path, handler, \*\*kwargs)**        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加`PUT`方法路由的快捷方式。等价于调用`add_route(method='PUT')`。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于 1.0版本。      
+
+&ensp;&ensp;&ensp; **add_patch(path, handler, \*\*kwargs)**        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加`PATCH`方法路由的快捷方式。等价于调用`add_route(method='PATCH')`。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于1.0版本。      
+
+&ensp;&ensp;&ensp; **add_delete(path, handler, \*\*kwargs)**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加`DELETE`方法路由的快捷方式。等价于调用`add_route(method='DELETE')`。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于 1.0版本。      
+
+&ensp;&ensp;&ensp; **add_static(prefix, path, \*, name=None, expect_handler=None, chunk_size=256\*1024, response_factory=StreamResponse, show_index=False, follow_symlinks=False, append_version=False)**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加一个用于返回静态文件的路由和处理器。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 对于获取图片，js和css等文件非常有用。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 在支持它的平台上，使用这个可以让文件发送系统(sendfile system)处理器更高效的转发这类文件。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 在某些情况下，即使平台支持也要避免使用文件发送系统。可以使用环境变量AIOHTTP_NOSENDFILE=1来设置它。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果静态文件的内容是gzip压缩的内容，文件的路径需要+ `.gz`，同样也会应用在响应中。
+
+### 警告：
+    add_static()仅用于开发。生存环境中，静态文件功能应由wbe服务器（比如nginx,apache）提供。
+
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 0.18.0版本修改的内容: 在支持的平台中，转发文件使用文件发送系统（sendfile system）。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 0.19.0版本修改的内容: 可以使用环境变量`AIOHTTP_NOSENDFILE=1`来关闭文件发送系统。        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 1.2.0  版本修改的内容: 发送gzip压缩的文件路径后会+`.gz`。        
+
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：          
+* prefix (str) - URL路径前缀，用于加到静态文件中。
+* path - 包含静态文件的文件系统中的文件夹，可以是str或`pathlib.Path`。       
+* name (str) - 路由名称，可选。
+* expect_handler (coroutine) - 异常处理器，可选。 
+* chunk_size (int) - 下载文件时单个分块的最大大小，默认是256Kb。增加chunk_size参数的值，比如说1Mb可能会提高下载速度，但同时也会增加内存占用。新增于 0.16版本。         
+* response_factory (callable) - 用于制造新响应的工厂，默认是`StreamResponse`，传入的对象应有兼容的API。新增于0.17版本。
+* show_index (bool) - 是否允许显示目录索引的标识，默认不允许并且返回`HTTP/403`。
+* follow_symlinks (bool) - 是否允许使用符号链接的标识，默认是不允许并返回`HTTP/404`。
+* append_version (bool) - 是否给url查询字符串添加文件版本号（hash）的标识，不过当你调用`StaticRoute.url()`和`StaticRoute.url_for()`的时候总会使用默认值。     
+
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回一个`StaticRoute`实例对象。    
+
+&ensp;&ensp;&ensp; **add_subapp(prefix, subapp)**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 在给定路径前缀下注册一个嵌套子应用。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 以定前缀开始的请求会交由subapp处理。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：
+* prefix (str) - 资源的路径前缀。    
+* subapp (Application) - 在给定前缀下的嵌套应用。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回`PreFixedSubAppResource`实例对象。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于 1.1版本。    
+
+&ensp;&ensp;&ensp; *coroutine resolve(request)*      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回request的`AbstractMatchInfo`实例对象。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法不会抛出任何异常，但是返回的`AbstractMatchInfo`的`http_exception`可能会有`HTTPException`实例对象。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果该请求没有与任何注册的路由相匹配，请求处理器会抛出`HTTPNotFound`或`HTTPMethodNotAllowed`的异常。        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 中间件就可以捕获这些异常来显示一个漂亮的错误页面。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 内部使用，终端用户几乎不需要调用这个方法。       
+
+### 注意
+    该方法使用Request.raw_path来匹配已注册的路由。     
+
+&ensp;&ensp;&ensp; **resources()**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回一个包含所有已注册的资源的`view`。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; `view`是一个允许这样做的对象:
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 从中获取路由表大小：
+```
+len(app.router.resources())
+``` 
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 进行迭代：
+```
+for resource in app.router.resources():
+    print(resource)
+```
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 检测某资源是否已经在路由表中：
+```
+route in app.router.resources()
+```
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法新增于 0.21.1。         
+
+&ensp;&ensp;&ensp; **routes()**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回一个包含所有已注册的路由的`view`。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于 0.18版本。       
+
+&ensp;&ensp;&ensp; **named_resources()**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回一个包含所有已命名资源的类字典对象types.MappingProxyType的`view`。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; view会将所有已命名资源的名字变成`BaseResource`实例对象。 支持常规类字典操作，除了可变性（它是只读的）。      
+```
+len(app.router.named_resources())
+
+for name, resource in app.router.named_resources().items():
+    print(name, resource)
+
+"name" in app.router.named_resources()
+
+app.router.named_resources()["name"]
+```
+&ensp;&ensp;&ensp; 该方法新增于 0.21版本。      
+
+&ensp;&ensp;&ensp; **named_routes()**          
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 与`named_resources()`一样，这个要早些，因为0.21版本才有`named_resources()`。         
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法新增于 0.19版本。          
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 0.21版本修改的内容: 该方法变为 named_resources()的副本，所以请用resources代替routes。           
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 自0.21版本后不再赞成使用: 请使用`named_resources`代替`name_routes`。          
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 与资源相同的路由会共用一个资源名称。            
+
+## Resource
+默认路由`UrlDispatcher`会同资源一起工作。     
+资源是路由表中的一个含有路径，独特的名字和至少有一条路由的组件。     
+web处理器会按以下方式进行检索:
+1. 从资源中一个个迭代。       
+2. 如果某资源与请求的URL相匹配则迭代其包含的路由。        
+3. 如果某路由的方法与请求的URL相匹配，该路由的处理器就会作为web处理器进行后续处理。之后检索结束。
+4. 否则路由会尝试下一条路由表中的资源。      
+5. 如果检索到最后都没有一个 资源/路由对符合请求，那么会返回一个特殊的`AbstractMatchInfo`实例对象，该对象会附带 `AbstractMatchInfo.http_exception = HTTPException`或者说`HTTP 404 Not Found / HTTP 405 Method Not Allowed`状态码。这时所注册的`AbstractMatchInfo.handler`会开始工作。      
+用户永远不要随意实例化一个资源类，只需要在用到时把它用`UrlDispatcher.add_resource()`添加即可。        
+添加之后可能还需要添加路由: `Resource.add_route()`。       
+`UrlDispatcher.add_route()`是下列方式的简化版：
+```
+router.add_resource(path).add_route(method, handler)
+```
+有名字的资源被叫做 已命名资源（named resource）。已命名资源存在的主要原因是使用路由名来构建URL时可以传递它到模板引擎中使用：
+```
+url = app.router['resource_name'].url_for().with_query({'a': 1, 'b': 2})
+```
+
+资源类的继承等级：
+* AbstractResource
+* - Resource
+* - - PlainResource
+* - - DynamicResource
+* - - StaticResource
+
+*class aiohttp.web.AbstractResource*        
+&ensp;&ensp;&ensp; 所有资源的基类。       
+&ensp;&ensp;&ensp; 继承自`collections.abc.Sized`和`collections.abc.Iterable`。     
+&ensp;&ensp;&ensp; `len(resource)`会返回属于该资源的路由总数，也允许进行迭代`for route in resource`。     
+
+&ensp;&ensp;&ensp; **name**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 资源的名称，或None，该属性只读。      
+### xxx
+&ensp;&ensp;&ensp; *coroutine resolve(method, path)*      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 尝试寻找合适的web处理器（method, path）来解析该资源。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：      
+* method (str) - 请求的HTTP方法。
+* path (str) - 请求的路径。
+&ensp;&ensp;&ensp; 返回（match_info, allowed_methods）。      
+&ensp;&ensp;&ensp; allowed_methods 是一个包含资源可接受的HTTP方法的集合。      
+&ensp;&ensp;&ensp; 如果请求被解析（resolve）match_info会是`UrlMappingMatchInfo`，如果没有找到任何路由则是None。       
+
+### xxx
+&ensp;&ensp;&ensp; **get_info()**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回资源的描述。如`{'path': '/path/to'}`, `{'formatter': '/path/{to}', 'pattern': re.compile(r'^/path/(?P<to>[a-zA-Z][_a-zA-Z0-9]+)$)`。        
+
+
+&ensp;&ensp;&ensp; **url_for(\*args, \*\*kwargs)**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 构建一个该路由的URL（可附带额外参数）。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; `args`和`kwargs`依赖继承于资源类的可接受参数列表。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回URL实例对象。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于 1.1版本。       
+
+&ensp;&ensp;&ensp; **url(\*\*kwargs)**        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 同上。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 1.1版本后不再赞成使用，请使用`url_for()`代替。      
+
+*class aiohttp.web.Resource*       
+&ensp;&ensp;&ensp; 新类型资源的基类，继承于`AbstractResource`。      
+
+&ensp;&ensp;&ensp; **add_route(method, handler, \*, expect_handler=None)**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加一个web处理器到资源中。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：     
+* method (str) - 路由可接受的HTTP方法。应是'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'中的一个，或传入'\*'表示任何方法。该方法大小写不敏感，'get'=='GET'。对该资源来说，method必须是唯一的。           
+* handler (callable) - 路由处理器。    
+* expect_handler (coroutine) - 异常处理器，可选。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回`ResourceReoute`实例对象。      
+
+*class aiohttp.web.PlainResource*     
+&ensp;&ensp;&ensp; 一个资源类，继承于`Resource`。     
+&ensp;&ensp;&ensp; 该类等价于使用普通文本匹配的资源。如'/path/to'。       
+
+&ensp;&ensp;&ensp; **url_for()**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回所属资源的URL。        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于 1.1版本。     
+
+*class aiohttp.web.DynamicResource*        
+&ensp;&ensp;&ensp; 一个资源类，继承于`Resource`。      
+&ensp;&ensp;&ensp; 该类等价于使用变量匹配的资源。如'/path/{to}/{param}'。      
+
+&ensp;&ensp;&ensp; **url_for(\*\*params)**        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回所属资源的URL。  
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**： params - 置换动态资源的变量。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 比如 '/path/{to}/{param}'，调用的时候应该是`resource.url_for(to="val1", param='val2')`。       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于 1.1版本。    
+
+*class aiohttp.web.StaticResource*      
+&ensp;&ensp;&ensp; 一个资源类，继承于`Resource`。     
+&ensp;&ensp;&ensp;等价于使用静态文件的资源。     
+
+&ensp;&ensp;&ensp; **url_for(filename, append_version=None)**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回文件路径并带有资源的前缀。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：  
+* filename - 文件名，由静态文件处理器调用。接受str和`pathlib.Path`。 '/prefix/dir/file.txt'由`resource.url_for(filename='dir/file.txt')`生成。
+* append_version (bool) - 是否给url查询字符串添加文件版本号（hash）的标识（可以加速缓存）。默认情况（False）下会由构造器产生一个值，当是Ture的时候 `v=FILE_HASH`格式的查询字符串参数会被添加到URL中，False则不做操作。如果文件未找到也不会有任何操作。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于 1.1版本。   
+
+*class aiohttp.web.PreFixedSubAppResource*       
+&ensp;&ensp;&ensp; 一个用于嵌套应用的资源类。该类由`add_subapp`方法返回而来。   
+&ensp;&ensp;&ensp; 新增于1.1版本。  
+
+&ensp;&ensp;&ensp; **url_for(\*\*kwargs)**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法不可调用，调用会抛出`RuntimeError`异常。      
+
+## Route
+路由（Route）具有HTTP方法（通配符'\*'是可以用的），web处理器和异常处理器（可选）。      
+每个路由都可属于多个资源。    
+路由类等级：
+* AbstractRoute
+* - ResourceRoute
+* - SystemRoute
+
+`ResourceRoute`是一个面向资源的路由，`SystemRoute`面向的是URL解析错误的处理，比如`404 Not Found`和`405 Method Not Allowd`之类的。      
+
+*class aiohttp.web.AbstractRoute*      
+&ensp;&ensp;&ensp; `UrlDispatcher`可使用的路由基类。       
+
+&ensp;&ensp;&ensp; **method**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该路由要处理的HTTP方法。'GET', 'POST'之类。     
+
+&ensp;&ensp;&ensp; **handler**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该路由的处理器。      
+
+&ensp;&ensp;&ensp; **name**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该路由的名称，等价于资源名称中属于该路由的名称。
+
+&ensp;&ensp;&ensp; **resource**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 持有该路由的资源，如果该类是`SystemRoute`则为None。     
+
+&ensp;&ensp;&ensp; **url_for(\*args, \*\*kwargs)**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回该路由所能构建的url。（只是个基础方法，意思是功能要自己继承后实现）      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 同时也是`route.resource.url_for(...)`的快捷方式。      
+
+&ensp;&ensp;&ensp; *coroutine handle_expect_header(request)*            
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; `100-continue`的处理器。       
+
+*class aiohttp.web.ResourceRoute*       
+&ensp;&ensp;&ensp; 一个用于在资源中处理不同HTTP方法的路由类。       
+
+*class aiohttp.web.SystemRoute*         
+&ensp;&ensp;&ensp; 一个用于处理URL错误（404/405之类的）的路由类。            
+
+&ensp;&ensp;&ensp; **status**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; HTTP状态码。     
+
+&ensp;&ensp;&ensp; **reason**        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; HTTP状态码说明。       
+
+## RouteDef     
+路由定义，是对还没注册路由的描述。     
+在填写路由表时使用包含路由定义的列表时非常有用（Django风格）。        
+定义由`get()`或`post()`之类的函数创建，定义列表可以用`UrlDispatcher.add_routes()`添加到路由器上：
+```
+from aiohttp import web
+
+async def handle_get(request):
+    ...
+
+
+async def handle_post(request):
+    ...
+
+app.router.add_routes([web.get('/get', handle_get),
+                       web.post('/post', handle_post),
+```
+
+*class aiohttp.web.RouteDef*        
+&ensp;&ensp;&ensp; 创建一个还没被添加的路由的定义。
+&ensp;&ensp;&ensp; **method**     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; HTTP方法（GET, POST之类），类型为字符串。     
+
+&ensp;&ensp;&ensp; **path**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 资源的路径，比如/path/to，可以是包含`{}`的可变资源，类型为字符串。   
+
+&ensp;&ensp;&ensp; **handler**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 用于处理HTTP请求的协程函数。       
+
+&ensp;&ensp;&ensp; **kwargs**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 包含额外参数的字典。      
+
+&ensp;&ensp;&ensp; 新增于2.3版本。     
+
+*aiohttp.web.get(path, handler, \*, name=None, allow_head=True, expect_handler=None)*      
+&ensp;&ensp;&ensp; 返回处理GET请求的`RouteDef`。请看`UrlDispatcher.add_get()`获取参数信息。     
+&ensp;&ensp;&ensp; 新增于2.3版本。   
+
+*aiohttp.web.post(path, handler, \*, name=None, expect_handler=None)*      
+&ensp;&ensp;&ensp; 返回处理POST请求的 'RouteDef'。请看`UrlDispatcher.add_post()`获取参数信息。      
+&ensp;&ensp;&ensp; 新增于2.3版本。 
+
+*aiohttp.web.head(path, handler, \*, name=None, expect_handler=None)*
+&ensp;&ensp;&ensp; 返回处理HEAD请求的`RouteDef`。请看`UrlDispatcher.add_head()`获取参数信息。     
+&ensp;&ensp;&ensp; 新增于2.3版本。   
+
+*aiohttp.web.put(path, handler, \*, name=None, expect_handler=None)*
+&ensp;&ensp;&ensp; 返回处理PUT请求的`RouteDef`。请看`UrlDispatcher.add_put()`获取参数信息。     
+&ensp;&ensp;&ensp; 新增于2.3版本。   
+
+*aiohttp.web.patch(path, handler, \*, name=None, expect_handler=None)*
+&ensp;&ensp;&ensp; 返回处理PATCH请求的`RouteDef`。请看`UrlDispatcher.add_patch()`获取参数信息。     
+&ensp;&ensp;&ensp; 新增于2.3版本。   
+
+*aiohttp.web.delete(path, handler, \*, name=None, expect_handler=None)*
+&ensp;&ensp;&ensp; 返回处理DELETE请求的`RouteDef`。请看`UrlDispatcher.add_delete()`获取参数信息。     
+&ensp;&ensp;&ensp; 新增于2.3版本。   
+
+### xxx
+*aiohttp.web.route(method, path, handler, *, name=None, expect_handler=None)*
+&ensp;&ensp;&ensp; 返回处理POST请求的`RouteDef`（文档中应该写错了，这个方法处理什么由method决定）。请看`UrlDispatcher.add_route()`获取参数信息。     
+&ensp;&ensp;&ensp; 新增于2.3版本。   
+
+## RouteTableDef
+路由表定义用于以装饰器模式描述路由（Flask风格）：
+```
+from aiohttp import web
+
+routes = web.RouteTableDef()
+
+@routes.get('/get')
+async def handle_get(request):
+    ...
+
+
+@routes.post('/post')
+async def handle_post(request):
+    ...
+
+app.router.add_routes(routes)
+```
+
+
+
 
 
 
