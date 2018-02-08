@@ -1065,9 +1065,9 @@ url = app.router['resource_name'].url_for().with_query({'a': 1, 'b': 2})
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; HTTP状态码说明。       
 
 ## RouteDef     
-路由定义，是对还没注册路由的描述。     
-在填写路由表时使用包含路由定义的列表时非常有用（Django风格）。        
-定义由`get()`或`post()`之类的函数创建，定义列表可以用`UrlDispatcher.add_routes()`添加到路由器上：
+路由定义，是对还没注册路由的描绘，说明。     
+在填写路由表时使用的是包含路由定义的列表时非常有用（Django风格）。        
+定义由`get()`或`post()`之类的函数创建，包含定义的列表可以用`UrlDispatcher.add_routes()`添加到路由器上：
 ```
 from aiohttp import web
 
@@ -1128,7 +1128,7 @@ app.router.add_routes([web.get('/get', handle_get),
 &ensp;&ensp;&ensp; 新增于2.3版本。   
 
 ## RouteTableDef
-路由表定义用于以装饰器模式描述路由（Flask风格）：
+路由表定义（RouteTableDef）用于以装饰器模式描绘路由（Flask风格）：
 ```
 from aiohttp import web
 
@@ -1146,6 +1146,146 @@ async def handle_post(request):
 app.router.add_routes(routes)
 ```
 
+*class aiohttp.web.RouteTableDef*      
+&ensp;&ensp;&ensp; 包含RouteDef实例的序列（具有abc.collections.Sequence的功能）。       
+&ensp;&ensp;&ensp; 除了所有标准列表方法，该类还提供如'get()', 'post()'之类用于添加新路由定义的方法。
+&ensp;&ensp;&ensp; *@get(path, \*, allow_head=True, name=None, expect_handler=None)*        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加一个GET方法的路由定义。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 请看`UrlDispatcher.add_get()`查看更多信息。             
+
+&ensp;&ensp;&ensp; *@post(path, \*, name=None, expect_handler=None)*           
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加一个POST方法的路由定义。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 请看`UrlDispatcher.add_post()`查看更多信息。             
+
+&ensp;&ensp;&ensp; *@head(path, \*, name=None, expect_handler=None)*           
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加一个HEAD方法的路由定义。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 请看`UrlDispatcher.add_head()`查看更多信息。           
+
+&ensp;&ensp;&ensp; *@put(path, \*, name=None, expect_handler=None)*           
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加一个PUT方法的路由定义。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 请看`UrlDispatcher.add_put()`查看更多信息。           
+
+&ensp;&ensp;&ensp; *@patch(path, \*, name=None, expect_handler=None)*           
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加一个PATCH方法的路由定义。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 请看`UrlDispatcher.add_patch()`查看更多信息。           
+
+&ensp;&ensp;&ensp; *@delete(path, \*, name=None, expect_handler=None)*           
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加一个DELETE方法的路由定义。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 请看`UrlDispatcher.add_delete()`查看更多信息。           
+
+&ensp;&ensp;&ensp; *@route(method, path, \*, name=None, expect_handler=None)*           
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加任意HTTP方法的路由定义。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 请看`UrlDispatcher.add_route()`查看更多信息。           
+
+&ensp;&ensp;&ensp; 新增于 2.3版本。      
+
+### MatchInfo    
+路由匹配之后，web应用会调用任何找到的处理器。       
+匹配结果可以在处理器中使用`Request.match_info`属性访问。       
+一般情况下，匹配结果可以是任何从`AbstractMatchInfo`继承的对象（如果是默认`UrlDispatcher`路由器则是`UrlMappingMatchInfo`）。          
+
+*class aiohttp.web.UrlMappingMatchInfo*        
+&ensp;&ensp;&ensp; 继承自`dict`和`AbstractMatchInfo`。字典内的项由匹配的内容填充，其内容只是与资源相关的信息。      
+
+&ensp;&ensp;&ensp; **expect_handler**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个用于处理 100-continue的协程处理器。     
+
+&ensp;&ensp;&ensp; **handler**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个用于处理请求的协程处理器。      
+
+&ensp;&ensp;&ensp; **route**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; url所匹配的路由实例。      
+
+### View      
+*class aiohttp.web.View(request)*      
+&ensp;&ensp;&ensp; 继承自`AbstractView`。        
+&ensp;&ensp;&ensp; 该类是以类为基础的视图的基类。部署时需要继承`View`并且要覆盖处理HTTP请求的方法（get(), post()等）：
+```
+class MyView(View):
+
+    async def get(self):
+        resp = await get_response(self.request)
+        return resp
+
+    async def post(self):
+        resp = await post_response(self.request)
+        return resp
+
+app.router.add_route('*', '/view', MyView)
+```
+&ensp;&ensp;&ensp; 如果请求的web方法不支持的话，视图会抛出`405 Method Not allowed (HTTPMethodNotAllowed)`。        
+&ensp;&ensp;&ensp; **参数**：request - 创建视图处理的Request实例对象。       
+
+&ensp;&ensp;&ensp; **request**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 发送到视图构造器中的请求，该属性只读。         
+
+&ensp;&ensp;&ensp; 可覆盖的协程方法有: `connect(), delete(), get(), head(), options(), patch(), post(), put(), trace()`。        
+
+### 其他工具
+*class aiohttp.web.FileField*       
+&ensp;&ensp;&ensp; 该类是在Request.POST()有上传文件时所返回的类（作为并联字典的namedtuple实例对象）。          
+
+&ensp;&ensp;&ensp; **name**         
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 字段名。      
+
+&ensp;&ensp;&ensp; **filename**       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 上传时指定的文件名字。      
+
+&ensp;&ensp;&ensp; **file**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 携带上传的文件的内容的 `io.IOBase`实例对象。     
+
+&ensp;&ensp;&ensp; **content_type**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 上传的文件的MIME类型，默认是'text/plain'。       
+
+
+*aiohttp.web.run_app(app, \*, host=None, port=None, path=None, sock=None, shutdown_timeout=60.0, ssl_context=None, print=print,  backlog=128, access_log_format=None, access_log=aiohttp.log.access_logger, handle_signals=True, loop=None)*       
+&ensp;&ensp;&ensp; 用于运行应用程序的函数，会一直运行，直到键盘打断然后执行关闭操作。      
+&ensp;&ensp;&ensp; 适合作为基础aiohttp项目使用。生存配置可能需要更复杂些的启动器，但在项目最初阶段，用它就够了。      
+&ensp;&ensp;&ensp; 该函数使用 `app.loop`作为事件循环。     
+&ensp;&ensp;&ensp; 服务器会监听你所提供的所有主机或Unix域套接字路径。如果没有提供任何主机或路径，或只提供了端口，则TCP服务器会监听 `0.0.0.0`(表示所有主机)。      
+&ensp;&ensp;&ensp; 在同一应用程序中将HTTP请求分发到多个主机或路径对于在同一个事件循环中处理请求没有执行效率上的提升。请查阅`Server Deployment`来了解如何进行分发工作以提升效率。      
+
+&ensp;&ensp;&ensp; **参数**：     
+* app - 要运行的`Application`实例对象。      
+* host (str) - 用于监听的TCP/IP 主机或一组主机序列。如果有提供端口或path没有提供则默认是`0.0.0.0`。     
+* port (int) - 用于监听TCP/IP 端口。对于普通HTTP默认是8080，经由SSL的HTTP默认则是8443（需要指定ssl_context参数）。
+* path (str) - 作为HTTP服务器，Unix域套接字的文件系统中的路径。绑定多个域套接字可以是一组路径序列。监听Unix域套接字并不是支持所有操作系统的。      
+* sock (socket) - 预先存在的套接字（socket）对象，用于接收连接。可以传递一组套接字（socket）序列。
+* shuntdown_timeout (int) - 关闭服务器时，解除所有已连接的客户端套接字的超时时间。配置有良好关闭程序的系统基本不会用到这个超时时间，配置良好只需要几毫秒即可完成关闭。     
+* ssl_context - HTTPS服务器所使用的ssl.SSLContext，None的话会使用HTTP连接。      
+* print - 请传入与`print()`相同的可调用对象。覆盖`STDOUT`输出或取缔它时会有些用处。传入None也可以禁止输出。
+* backlog (int) - 无法接受的连接的总数，达到设定的值时会拒绝新连接（默认128）。
+* access_log - 用于存储访问日志的`logging.Logger`实例对象。传入None来禁用日志可以对响应速度有些许提升。      
+* handle_signals (bool) - 是否覆盖信号TERM处理来正常关闭应用程序。
+* loop - 用于运行应用程序的事件循环（默认是None）。如果loop并未显式指定，函数关闭时（调用close()后）不会对非默认循环做任何事。
+
+## 常量
+*class aiohttp.web.ContentCoding*     
+&ensp;&ensp;&ensp; 可以使用的内容代码（Content Codings）的枚举（`enum.Enum`）类。
+
+&ensp;&ensp;&ensp; **deflate**    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 表示`DEFLATE`压缩。      
+
+&ensp;&ensp;&ensp; **gzip**      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 表示`GZIP`压缩。        
+
+*aiohttp.web.identity*      
+&ensp;&ensp;&ensp; 表示无压缩。      
+
+
+## 中间件     
+### 标准化路径的中间件
+*aiohttp.web.normalize_path_middleware(\*, append_slash=True, merge_slashes=True)*       
+&ensp;&ensp;&ensp; 标准化请求中路径的中间件。标准化的意思是：
+* 在路径尾添加一个斜线（'/'）。
+* 将两个斜线变成一个斜线（'//'->'/'）。
+&ensp;&ensp;&ensp; 只要改路径符合规范，则立即返回。如果两个参数所指代的功能都是允许的话，执行顺序是这样的：
+1. merge_slashes 
+2. append_slash 
+3. 执行merge_slashes和append_slash
+&ensp;&ensp;&ensp; 如果路径至少符合其中一个条件，则重定向到一个新路径上。        
+&ensp;&ensp;&ensp; 在需要添加斜线时`append_slash`也需要是Ture才会执行。是True的话当一个资源定义时尾部有斜线，但请求没有斜线时，将会自动给请求加上斜线。
+&ensp;&ensp;&ensp; 如果merge_slashes是True，将会把路径中连续的斜线变成一个斜线。
 
 
 

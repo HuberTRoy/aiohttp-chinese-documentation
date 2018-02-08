@@ -8,13 +8,17 @@
 * 待完善 -> 基本翻译完成，但相关样式链接不完善。
 * 待更新 -> 尚未完成翻译。
 
+### 进度：
+目前除 更新日志 和 总目录（这个无需翻译，只是索引）都已更新初版翻译。
+可能有很多不合理的地方，如有看到方便的话请随时反馈交流~，谢谢~。
+
 ## 目录:
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/AbstractBaseClasses.md">简介及快速上手</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ClientUsage.md">客户端使用手册</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ClientReference.md">客户端参考手册</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerTutorial.md">服务端指南(待完善...)</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md">服务端使用手册(待完善...)</a>
-* <a href="https://aiohttp.readthedocs.io/en/stable/web_reference.html">服务端参考手册(待更新...)</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerReference.md">服务端参考手册(待完善...)</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/LowLevelServer.md">低级服务器搭建(待完善...)</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/AbstractBaseClasses.md">抽象基类参考(待完善...)</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/WorkWithMultipart.md">使用Multipart(待完善...)</a>
