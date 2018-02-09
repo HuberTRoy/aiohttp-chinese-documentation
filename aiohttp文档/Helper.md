@@ -1,4 +1,4 @@
-该文档介绍所有子模块——客户端，multipart，协议和工具类中要被加载到aiohttp命名空间的名称信息。
+该文档介绍所有子模块——`客户端`，`multipart`，`协议`和`工具类`中要被加载到aiohttp命名空间的名称信息。
 
 
 # WebSocket 工具类
@@ -20,7 +20,7 @@
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 表示因接受到的数据中含有不能理解的消息类型引起的终止连接。（如在文本消息中出现非UTF-8编码的内容）    
 
 &ensp;&ensp;&ensp;**POLICY_VIOLATION**   
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 表示因接收到的信息违反规定引起的终止连接。如果没有合适的状态码会返回通用状态码（比如unsupported_data或message_too_big）。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 表示因接收到的信息违反规定引起的终止连接。如果没有合适的状态码会返回通用状态码（比如`unsupported_data`或`message_too_big`）。
 
 &ensp;&ensp;&ensp; **MESSAGE_TOO_BIG**   
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 表示因接受的消息（数量）太大引起的终止连接。    
@@ -38,7 +38,7 @@
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  服务过载。客户端需要连接到不同的IP地址（如果有的话）或尝试重新连接。   
 
 *class aiohttp.WSMsgType*  
-&ensp;&ensp;&ensp; 描述WSMessage类型的整数枚举类。   
+&ensp;&ensp;&ensp; 描述`WSMessage`类型的`整数枚举(IntEnum)`类。   
 
 &ensp;&ensp;&ensp; **CONTINUATION**   
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  用于连接帧的标记，用户不会收到此消息类型。  
@@ -65,21 +65,21 @@
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  不是一个帧，只是一个代表websocket接受到一个错误的标志。   
 
 *class aiohttp.WSMessage*   
-&ensp;&ensp;&ensp; WebSocket信息，由 .receive()调用得到。  
+&ensp;&ensp;&ensp; WebSocket信息，由 `.receive()`调用得到。  
 &ensp;&ensp;&ensp;**type（类型）**   
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  消息类型，是一个WSMsgType实例对象。   
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  消息类型，是一个`WSMsgType`实例对象。   
 
 &ensp;&ensp;&ensp;**data（数据）**  
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  消息载体。   
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  1. WSMsgType.TEXT消息的类型为str。    
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  2. WSMsgType.BINARY消息的类型为bytes。    
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  3. WSMsgType.CLOSE消息的类型为WSCloseCode。    
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  4. WSMsgType.PING消息的类型为bytes。    
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  5. WSMsgType.PONG消息的类型为bytes。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  1. `WSMsgType.TEXT`消息的类型为`str`。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  2. `WSMsgType.BINARY`消息的类型为`bytes`。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  3. `WSMsgType.CLOSE`消息的类型为`WSCloseCode`。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  4.`WSMsgType.PING`消息的类型为`bytes`。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  5. `WSMsgType.PONG`消息的类型为`bytes`。    
 
 &ensp;&ensp;&ensp; **extra**    
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 额外信息，类型为字符串。    
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 只对WSMsgType.CLOSE消息有效，内容包含可选的消息描述。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 只对`WSMsgType.CLOSE`消息有效，内容包含可选的消息描述。    
 
 &ensp;&ensp;&ensp; **json(\*, loads=json.loads)**   
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  返回已解析的JSON数据。        
@@ -87,7 +87,7 @@
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  **参数：** loads - 自定义JSON解码函数。    
 
 &ensp;&ensp;&ensp; **tp**
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 不赞成使用的type别名函数。   
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 不赞成使用的**type**别名函数。   
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 1.0版本后不再建议使用。   
 
 # 信号
@@ -96,7 +96,7 @@
 第二个是sig.freeze()调用之后，在这之后信号会被冻结: 添加，删除和丢弃回调函数都是被禁止的。     
 唯一可做的就是调用之前已经注册过的回调函数: await sig.send(data) 。   
 
-更多实用例子请看aiohttp.web中的信号章节。    
+更多实用例子请看<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#信号">aiohttp.web中的信号</a>章节。    
 
 *class aiohttp.Signal*     
 &ensp;&ensp;&ensp;  信号组件，具有collections.abc.MutableSequence接口。    

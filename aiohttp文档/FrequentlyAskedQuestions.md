@@ -1,18 +1,18 @@
 # 常见问题汇总
 
-* 有没有提供像Flask一样的`@app.route`装饰器的计划？
-* aiohttp有没有Flask中的蓝图或Django中的App的概念呢？
-* 如何创建一个可以缓存url的给定前缀的路由？
-* 我要把数据库连接放在哪才可以让处理器访问到它？
-* 为什么最低版本只支持到Python 3.4.2？
-* 如何让中间件可以存储数据以便让web-handler使用？
-* 如何并行地接收来自不同源的事件？
-* 如何以编程的方式在服务器端关闭websocket？
-* 如何从特定IP地址上发起请求？
-* 如果是隐式循环要怎么用aiohttp的测试功能呢？
-* API创建和废弃政策是什么？
-* 如何让整个应用程序都使用gzip压缩？
-* 在web服务器汇总如何管理ClientSession？
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#有没有提供像flask一样的approute装饰器的计划">有没有提供像Flask一样的`@app.route`装饰器的计划？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#aiohttp有没有flask中的蓝图或django中的app的概念呢">aiohttp有没有Flask中的蓝图或Django中的App的概念呢？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#如何创建一个可以缓存url的给定前缀的路由">如何创建一个可以缓存url的给定前缀的路由？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#我要把数据库连接放在哪才可以让处理器访问到它">我要把数据库连接放在哪才可以让处理器访问到它？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#为什么最低版本只支持到python-342">为什么最低版本只支持到Python 3.4.2？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#如何让中间件可以存储数据以便让web-handler使用">如何让中间件可以存储数据以便让web-handler使用？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#如何并行地接收来自不同源的事件">如何并行地接收来自不同源的事件？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#如何以编程的方式在服务器端关闭websocket">如何以编程的方式在服务器端关闭websocket？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#如何从特定ip地址上发起请求">如何从特定IP地址上发起请求？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#如果是隐式循环要怎么用aiohttp的测试功能呢">如果是隐式循环要怎么用aiohttp的测试功能呢？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#api创建和废弃政策是什么">API创建和废弃政策是什么？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#如何让整个应用程序都使用gzip压缩">如何让整个应用程序都使用gzip压缩？</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/FrequentlyAskedQuestions.md#在web服务器中如何管理clientsession">在web服务器汇总如何管理ClientSession？</a>
 
 # 有没有提供像Flask一样的`@app.route`装饰器的计划？
 这种方法有几项问题:
@@ -155,7 +155,7 @@ async with aiohttp.ClientSession(connector=conn) as session:
 ```
 
 ### 扩展
-    请看 <a href="">aiohttp.TCPConnector及其local_addr参数</a>。
+请看 <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ClientReference.md#tcpconnector">aiohttp.TCPConnector及其local_addr参数</a>。
 
 #  如果是隐式循环要怎么用aiohttp的测试功能呢？
 传递显式的loop是推荐方式。但有时如果你有一个嵌套多层而且写的不好的服务时，这几乎是不可能的任务。    

@@ -1,16 +1,16 @@
 # 服务器部署
 关于aiohttp服务器部署，这里有以下几种选择:
 1. 独立的服务器。
-2. 使用nginx, HAProxy等反向代理服务器，之后是后端服务器。
-3. 在反向代理之后在部署一层gunicorn，然后才是后端服务器。
+2. 使用<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/Glossary.md#nginx">nginx</a>, HAProxy等反向代理服务器，之后是后端服务器。
+3. 在反向代理之后在部署一层<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/Glossary.md#gunicorn">gunicorn</a>，然后才是后端服务器。
 
 # 独立服务器
-只需要调用aiohttp.web.run_app(),并传递aiohttp.web.Application实例即可。     
+只需要调用`aiohttp.web.run_app()`,并传递`aiohttp.web.Application`实例即可。     
 该方法最简单，也是在比较小的程序中最好的解决方法。但该方法并不能完全利用CPU。   
 如果要运行多个aiohttp服务器实例请用反向代理。   
 
 # Nginx + supervisord
-将aiohttp服务器组运行在nginx之后有好多好处。       
+将aiohttp服务器组运行在<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/Glossary.md#nginx">nginx</a>之后有好多好处。       
 首先，nginx是个很好的前端服务器。它可以预防很多攻击如格式错误的http协议的攻击。     
 第二，部署nginx后可以同时运行多个aiohttp实例，这样可以有效利用CPU。   
 最后，nginx提供的静态文件服务器要比aiohttp内置的静态文件支持快很多。   
@@ -22,7 +22,7 @@
 
 下面是一份简短的配置Nginx参考，并没涉及到所有的Nginx选项。    
 
-你可以阅读Nginx指南和官方文档来找到所有的参考。   
+你可以阅读<a href="https://www.nginx.com/resources/admin-guide/">Nginx指南</a>和<a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html">官方文档</a>来找到所有的参考。   
 
 好啦，首先我们要配置HTTP服务器本身:
 ```
@@ -85,7 +85,7 @@ http {
 
 配置完Nginx，我们要开始配置aiohttp后端服务器了。使用些工具可以在系统重启或后端出现错误时更快地自动启动。     
 我们有很多工具可以选择: Supervisord, Upstart, Systemd, Gaffer, Runit等等。    
-我们用Supervisord当做例子：    
+我们用<a href="http://supervisord.org/">Supervisord</a>当做例子：    
 ```
 [program:aiohttp]
 numprocs = 4
@@ -105,7 +105,7 @@ autorestart=true
 
 ## aiohtto服务器
 最后我们要让aiohttp服务器在supervisord上工作。    
-假设我们已经正确配置aiohttp.web.Application，端口也被正确指定，这些工作挺烦的:
+假设我们已经正确配置`aiohttp.web.Application`，端口也被正确指定，这些工作挺烦的:
 ```
 # aiohttp_example.py
 import argparse
@@ -126,11 +126,11 @@ if __name__ == '__main__':
 当然在真实环境中我们还要做些其他事情，比如配置日志等等，但这些事情不在本章讨论范围内。
 
 # Nginx + Gunicorn
-我们还可以使用Gunicorn来部署aiohttp，Gunicorn基于pre-fork worker模式。Gunicorn将你的app当做worker进程来处理即将到来的请求。     
+我们还可以使用Gunicorn来部署aiohttp，<a href="http://docs.gunicorn.org/en/latest/index.html">Gunicorn</a>基于pre-fork worker模式。Gunicorn将你的app当做worker进程来处理即将到来的请求。     
 与部署Ngnix相反，使用Gunicorn不需要我们手动启动aiohttp进程，也不需要使用如supervisord之类的工具进行监控。但这并不是没有代价：在Gunicorn下运行aiohttp应用会有些许缓慢。
 
 ## 准备环境
-在做以上操作之前，我们首先要做的就是配置我们的部署环境。本章例子基于Ubuntu 14.04。    
+在做以上操作之前，我们首先要做的就是配置我们的部署环境。本章例子基于*Ubuntu 14.04*。    
 
 首先为应用程序创建个目录:
 ```
@@ -165,11 +165,11 @@ my_web_app.router.add_get('/', index)
 ```
 
 ## 启动Gunicorn
-启动Gunicorn时我们要将模块名字（如my_app_module）和应用程序的名字（如my_web_app）传入，可以一起在配置Gunicorn其他选项时写入也可以写在配置文件中。      
+<a href="http://docs.gunicorn.org/en/latest/run.html">启动Gunicorn</a>时我们要将模块名字（如*my_app_module*）和应用程序的名字（如*my_web_app*）传入，可以一起在<a href="http://docs.gunicorn.org/en/latest/settings.html">配置Gunicorn</a>其他选项时写入也可以写在配置文件中。      
 本章例子所使用到的选项：
 * -bind  用于设置服务器套接字地址。
 * -worker-class 表示使用我们自定义的worker代替Gunicorn的默认worker。
-* 你可能还想用 -workers 让Gunicorn知道应该用多少个worker来处理请求。（建议的worker数量请看 <a href="">设置多少个worker合适？</a>）
+* 你可能还想用 -workers 让Gunicorn知道应该用多少个worker来处理请求。（建议的worker数量请看 <a href="http://docs.gunicorn.org/en/latest/design.html#how-many-workers">设置多少个worker合适？</a>）
 
 ```
 >> gunicorn my_app_module:my_web_app --bind localhost:8080 --worker-class aiohttp.GunicornWebWorker
@@ -181,13 +181,13 @@ my_web_app.router.add_get('/', index)
 现在，Gunicorn已成功运行，随时可以将请求交由应用程序的worker处理。    
 
 ### 注意
-    如果你使用的是另一个asyncio事件循环 uvloop, 你需要用 aiohttp.GunicornUVLoopWebWorker worker类。
+如果你使用的是另一个asyncio事件循环<a href="https://github.com/MagicStack/uvloop">uvloop</a>, 你需要用`aiohttp.GunicornUVLoopWebWorker` worker类。
 
 ## 其他内容
-Gunicorn 文档建议将Gunicorn部署在Nginx代理服务器之后。可看下官方文档的<a href="">建议</a>。
+Gunicorn 文档建议将Gunicorn部署在Nginx代理服务器之后。可看下官方文档的<a href="http://docs.gunicorn.org/en/latest/deploy.html">建议</a>。
 
 ## 配置日志
-aiohttp和Gunicorn使用不同的日志格式。
+`aiohttp`和`Gunicorn`使用不同的日志格式。
 默认aiohttp使用自己的日志格式：
 ```
 '%a %l %u %t "%r" %s %b "%{Referrer}i" "%{User-Agent}i"'

@@ -1,10 +1,10 @@
 # 贡献须知
 ## 贡献者说明
-首先需要clone GitHub上的仓库: 打开链接，并位于右上角的点击“Fork”按钮。
+首先需要clone <a href="https://github.com/aio-libs/aiohttp">GitHub</a>上的仓库: 打开链接，并位于右上角的点击“Fork”按钮。
 :) 我想应该所有人都会使用git和github吧~。
 
 之后要做的步骤很清晰:
-1. clone这个GitHub仓库。
+1. clone这个<a href="https://github.com/aio-libs/aiohttp">GitHub仓库</a>。
 2. 进行修改。
 3. 确保所有代码测试通过。
 4. 在CHANGES文件夹中添加一个说明文件（用于更新Changelog）。
@@ -93,15 +93,15 @@ $ pip install sphinxcontrib-spelling
 ```
 
 ## 更新 修改日志
-CHANGES.rst文件使用`towncrier`工具管理，所有重要的修改都要有一个条目。
+CHANGES.rst文件使用<a href="https://github.com/hawkowl/towncrier">towncrier</a>工具进行管理，所有重要的修改都要有一个条目。
 要为新文件增加一个条目，首要需要创建一个关于你想怎么做的issue。一个PR本身的功能也和这个一样，但有一个正经关于此修改的issue更好（举个例子，万一因为代码质量问题驳回了PR呢...）。
 
-一旦你有了一个issue或PR，你会得到一个号码并在CHANGES/目录内以此issue的号码和其扩展内容如 `.removal, .feature, .bugfix, .doc`创建一个文件。比如你的issue或PR号码是1234，是关于修复bug的，这样就会创建一个CHANGES/1234.bugfixs的文件。PR们可以创建多个类别的说明文件（比如，你添加了一个新功能，并且要删除或不在赞成使用某个旧功能，那就创建CHANGES/NNNN.feature和CHANGES/NNNN.removal）。同样地，如果一个PR涉及到多个issues/PR你可以为它们每个都创建相同的内容，Towncrier会删除重复的部分。
+一旦你有了一个issue或PR，你会得到一个号码并在CHANGES/目录内以此issue的号码和其扩展内容如 `.removal, .feature, .bugfix, .doc`创建一个文件。比如你的issue或PR号码是1234，是关于修复bug的，这样就会创建一个`CHANGES/1234.bugfixs`的文件。PR们可以创建多个类别的说明文件（比如，你添加了一个新功能，并且要删除或不在赞成使用某个旧功能，那就创建`CHANGES/NNNN.feature`和`CHANGES/NNNN.removal`）。同样地，如果一个PR涉及到多个issues/PR你可以为它们每个都创建相同的内容，Towncrier会删除重复的部分。
 
 文件的内容使用`reStruredText`格式化内容，格式化后的内容会作为新文件条目来使用。你不需要为issue或PR添加关联，towncrier会自动为所有涉及到的issues添加关联。
 
 ## 最后
-做完这些之后，请在GitHub上发起PR，谢谢~。
+做完这些之后，请在<a href="https://github.com/aio-libs/aiohttp">GitHub</a>上发起PR，谢谢~。
 
 
 

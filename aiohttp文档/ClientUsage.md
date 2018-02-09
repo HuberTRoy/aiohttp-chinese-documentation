@@ -12,7 +12,7 @@ async with aiohttp.ClientSession() as session:
         print(resp.status)
         print(await resp.text())
 ```
-我们现在有了一个`会话(session)`对象，由**ClientSession(客户端会话)**对象赋值而来，还有一个变量`resp`，它其实是**ClientResponse(客户端响应)**对象。我们可以从这个响应对象中获取我们任何想要的信息。协程方法**ClientSession.get()**的主要参数接受一个HTTP URL。
+我们现在有了一个`会话(session)`对象，由**ClientSession**对象赋值而来，还有一个变量`resp`，它其实是**ClientResponse**对象。我们可以从这个响应对象中获取我们任何想要的信息。协程方法`ClientSession.get()`的主要参数接受一个HTTP URL。
 
 发起HTTP POST请求我们可以使用协程方法**ClientSession.post()**:
 ```
@@ -62,7 +62,7 @@ async with session.get('http://httpbin.org/get',
                        params=params) as r:
     assert str(r.url) == 'http://httpbin.org/get?key=value2&key=value1'
 ```
-同样也允许你传递**str(字符串，python中的数据类型)**给params，但要小心一些不能被编码的字符。`+`就是一个不能被编码的字符:
+同样也允许你传递**str**（字符串）给params，但要小心一些不能被编码的字符。`+`就是一个不能被编码的字符:
 ```
 async with session.get('http://httpbin.org/get',
                        params='key=value+1') as r:
@@ -111,13 +111,13 @@ b'[{"created_at":"2015-06-12T14:06:22Z","public":true,"actor":{...
 async with session.get('https://api.github.com/events') as resp:
     print(await resp.json())
 ```
-如果JSON解码失败，**json()**方法将会抛出一个异常。你还可以在调用**json()**时指定编码器和解码器函数。
+如果JSON解码失败，**json**()方法将会抛出一个异常。你还可以在调用**json**()时指定编码器和解码器函数。
 
 > ### 注意:
 这些方法会读出内存中所有响应的内容。如果你要读非常多的数据，考虑使用流式响应方法进行读取。请看之后的文档。
 
 ## 流式响应内容:
-**read()**, **json()**, **text()**等方法使用起来很方便，但也要注意谨慎地使用。上述方法会将所有的响应内容加载到内存。举个例子，如果你要下载几个G的文件，这些方法还是会将所有内容都加载到内存，内存会表示"臣妾做不到啊~"(如果内存不够的话)。作为代替你可以用**content**属性。content其实是 **aiohttp.StreamReader**类的实例。`gzip`和`deflate`传输编码同样会自动解码。
+**read**(), **json**(), **text**()等方法使用起来很方便，但也要注意谨慎地使用。上述方法会将所有的响应内容加载到内存。举个例子，如果你要下载几个G的文件，这些方法还是会将所有内容都加载到内存，内存会表示"臣妾做不到啊~"(如果内存不够的话)。作为代替你可以用**content**属性。content其实是 **aiohttp.StreamReader**类的实例。`gzip`和`deflate`传输编码同样会自动解码。
 
 ```
 async with session.get('https://api.github.com/events') as resp:
@@ -132,7 +132,7 @@ with open(filename, 'wb') as fd:
             break
         fd.write(chunk)
 ```
-在使用**content**读了数据后，就不要在用**read()**, **json()**, **text()**了。
+在使用**content**读了数据后，就不要在用**read**(), **json**(), **text**()了。
 
 ## 请求信息:
 *ClientResponse（客户端响应）*对象含有request_info(请求信息)，主要是*url*和*headers*信息。 *raise_for_status*结构体上的信息会被复制给ClientResponseError实例。
@@ -162,7 +162,7 @@ async with ClientSession(cookies=cookies) as session:
            "cookies": {"cookies_are": "working"}}
 ```
 > ### 注意:
-访问`httpbin.org/cookies` 会看到以JSON形式返回的cookies。查阅会话中的cookies请看**<a href="https://aiohttp.readthedocs.io/en/stable/client_reference.html#aiohttp.ClientSession.cookie_jar">ClientSession.cookie_jar</a>**。
+访问`httpbin.org/cookies` 会看到以JSON形式返回的cookies。查阅会话中的cookies请看<a href="https://aiohttp.readthedocs.io/en/stable/client_reference.html#aiohttp.ClientSession.cookie_jar">ClientSession.cookie_jar</a>。
 
 ## 更复杂的POST请求:
 一般来说，如果你想以表单形式发送一些数据 - 就像HTML表单。那么只需要简单的将一个dict通过*data*参数传递就可以。传递的dict数据会自动编码:

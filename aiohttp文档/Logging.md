@@ -19,7 +19,7 @@ aiohttp中有以下日志记录器（以名字排序）:
 
 ### 注意
     可以使用 web.run_app(app, access_log=None)来禁用记录访问日志。
-其他参数如access_log_format可以指定日志格式（详情见下文）
+其他参数如*access_log_format*可以指定日志格式（详情见下文）
 
 # 指定格式
 aiohttp提供自定义的微语言来指定请求和响应信息:
@@ -44,7 +44,7 @@ aiohttp提供自定义的微语言来指定请求和响应信息:
 '%a %l %u %t "%r" %s %b "%{Referrer}i" "%{User-Agent}i"'
 ```
 
-aiohttp.helper.AccessLogger替换例子:
+**aiohttp.helper.AccessLogger**替换例子:
 ```
 class AccessLogger(AbstractAccessLogger):
 
@@ -59,7 +59,7 @@ class AccessLogger(AbstractAccessLogger):
     如果要指定Gunicorn的访问日志格式，需要使用aiohttp的格式标识。
 
 # 错误日志
-aiohttpw.web使用'aiohttp.server'来存储处理web请求时的错误日志。    
+aiohttpw.web使用`aiohttp.server`来存储处理web请求时的错误日志。    
 默认情况下是开启的。   
-使用不同的记录器名字请在调用aiohttp.web.Application.make_handler()时指定logger参数的值（需要logging.Logger实例对象）。
+使用不同的记录器名字请在调用`aiohttp.web.Application.make_handler()`时指定`logge`参数的值（需要`logging.Logger`实例对象）。
 
