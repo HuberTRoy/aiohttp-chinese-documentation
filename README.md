@@ -18,7 +18,7 @@
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ClientReference.md">客户端参考手册</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerTutorial.md">服务端指南(待完善...)</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md">服务端使用手册(待完善...)</a>
-* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerReference.md">服务端参考手册(待完善...)</a>
+* <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerReference.md">服务端参考手册</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/LowLevelServer.md">底层服务器搭建</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/AbstractBaseClasses.md">抽象基类参考</a>
 * <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/WorkWithMultipart.md">使用Multipart(待完善...)</a>

@@ -1,8 +1,8 @@
 # 服务器端参考
 ## 请求(Request)和基础请求(BaseRequest)
 Request 对象中包含所有的HTTP请求信息。       
-BaseRequest 用在低级服务器中（低级服务器没有应用，路由，信号和中间件）。Request对象拥有Request.app和Request.match_info属性。       
-BaseRequest和Reuqest都是类字典对象，以便在中间件和信号处理器中共享数据。      
+BaseRequest 用在<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/LowLevelServer.md">底层服务器</a>中（底层服务器没有应用，路由，信号和中间件）。Request对象拥有Request.app和Request.match_info属性。       
+BaseRequest和Reuqest都是类字典对象，以便在<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#中间件">中间件</a>和<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#信号">信号</a>处理器中<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#数据共享">共享数据</a>。      
 *class aiohttp.web.**BaseRequest***     
 &ensp;&ensp;&ensp; **version**     
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 发起请求的HTTP版本，该属性只读。       
@@ -16,55 +16,59 @@ BaseRequest和Reuqest都是类字典对象，以便在中间件和信号处理�
     如果是不合适的请求（如没有HOST HTTP头信息）则是不可用的。
 &ensp;&ensp;&ensp; **rel_url**     
 &ensp;&ensp;&ensp; 包含资源的相对路径的URL实例对象。   
-&ensp;&ensp;&ensp; 与 .url.relative()相同。     
+&ensp;&ensp;&ensp; 与`.url.relative()`相同。     
 &ensp;&ensp;&ensp; **scheme**     
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 表示请求中的协议（scheme）部分。     
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果处理方式是SSL则为"https"，否则是"http"。      
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该属性的值可能会被 clone()方法覆盖。  
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该属性只读，类型为str。      
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 2.3版本时更改内容: Forwarded 和 X-Forwarded-Proto不在被使用。   
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用 .clone(scheme=new_scheme)来设置一个新的值。   
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用 `.clone(scheme=new_scheme)`来设置一个新的值。   
 ### 扩展
-    基于代理部署服务器
+<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#基于代理部署服务器">基于代理部署服务器</a>
 
 &ensp;&ensp;&ensp; **secure**     
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 设置request.url.scheme == 'https'的简写。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 设置`request.url.scheme == 'https'`的快捷方法。    
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该属性只读，True或者False。    
 &ensp;&ensp;&ensp; **forwarded**    
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 包含了所有已编译过的Forwarded头信息的元组。      
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 尽可能做到符合RFC 7239规定:     
-1. 为每个Forwarded域值添加一个不可变的字典。字典内的元素等同于Forwarded域值中的数据，该数据是客户端首次遇到的代理时所添加的值。随后的项是客户端后来遇到的代理所添加的值。   
-2. 检查每个值是否符合RFC 7239#section-4中的语法规定：令牌（token）或已编译字符串（quoted-string）。
-3. 对已编译对（quoted-pairs）进行un-escape解码。
-4. 根据RFC 7239#section-6规定，将不验证‘by’和‘for’的内容。
-5. 不验证host内容（Host ABNF）。
-6. 对于有效的URI协议名不验证其协议内容。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 尽可能做到符合<a href="https://tools.ietf.org/html/rfc7239.html">RFC 7239</a>规定:     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 1. 为每个Forwarded域值添加一个不可变的字典。字典内的元素等同于Forwarded域值中的数据，该数据是客户端首次遇到的代理时所添加的值。随后的项是客户端后来遇到的代理所添加的值。   
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 2. 检查每个值是否符合<a href="https://tools.ietf.org/html/rfc7239.html#section-4">RFC 7239#section-4</a>中的语法规定：令牌（token）或已编译字符串（quoted-string）。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 3. 对已编译对（quoted-pairs）进行un-escape解码。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 4. 根据<a href="https://tools.ietf.org/html/rfc7239.html#section-6">RFC 7239#section-6</a>规定，将不验证‘by’和‘for’的内容。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 5. 不验证host内容（Host ABNF）。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 6. 对于有效的URI协议名不验证其协议内容。
 
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回包含一个或多个MappingProxy对象的元组。     
 &ensp;&ensp;&ensp; **host**      
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 请求中的主机（Host）名，以此顺序解析：
-* 被clone()方法的值所覆盖。
-* Host HTTP头信息。
+* `clone()`方法所设置的值。
+* HTTP头信息中的HOST。
 * socket.gtfqdn()
+
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该属性只读，类型为str。     
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 2.3版本时更改内容: Forwarded 和 X-Forwarded-Proto不在被使用。   
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用 .clone(host=new_host)来设置一个新的值。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用`.clone(host=new_host)`来设置一个新的值。    
 
 ### 扩展
-    基于代理部署服务器
+<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#基于代理部署服务器">基于代理部署服务器</a>
+
 &ensp;&ensp;&ensp; **remote**    
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 初始化HTTP请求的IP地址。   
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 按以下顺序解析：
-* 被clone()方法的值所覆盖。
+* `clone()`方法所设置的值。
 * 已打开的socket的Peer的值。
+
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该属性只读，类型为str。     
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用 .clone(remote=new_remote)来设置一个新的值。      
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用`.clone(remote=new_remote)`来设置一个新的值。      
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于 2.3版本。    
 
 ### 扩展
-    基于代理部署服务器
+<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#基于代理部署服务器">基于代理部署服务器</a>
+
 &ensp;&ensp;&ensp; **path_qs**     
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 包含路径信息和查询字符串的URL（/app/blog?id=10）。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 包含路径信息和查询字符串的URL（/app/blog?id=10）。         
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该属性只读，类型为str。     
 
 &ensp;&ensp;&ensp; **path**     
@@ -95,7 +99,7 @@ BaseRequest和Reuqest都是类字典对象，以便在中间件和信号处理�
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该属性只读，类型为Bool。     
 
 &ensp;&ensp;&ensp; **transport**     
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 用于处理请求的传输端口，该属性只读。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 用于处理请求的传输端口（<a href="https://docs.python.org/3/library/asyncio-protocol.html#asyncio-transport">transport</a>），该属性只读。     
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该属性可以被用在获取客户端 peer的IP地址时。    
 ```
 peername = request.transport.get_extra_info('peername')
@@ -136,7 +140,7 @@ if peername is not None:
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 类型是str，如'text/html'。      
 
 ### 注意 
-    如果无Content-Type头信息，根据RFC 2616，返回的值为 'application/octet-stream'
+如果无Content-Type头信息，根据<a href="https://tools.ietf.org/html/rfc2616.html">RFC 2616</a>的规定，返回的值为 'application/octet-stream'
 
 &ensp;&ensp;&ensp; **charset**       
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 请求主体（BODY）使用的编码，该属性只读。     
@@ -176,7 +180,8 @@ return buffer[request.http_range]
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：
 *  method (str) - http方法。     
 *  rel_url - 使用的url，str或URL对象。
-*  headers - CIMuliDictProxy对象或其他兼容头信息的容器。      
+*  headers - CIMuliDictProxy对象或其他兼容头信息的容器。  
+
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **返回**：
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回克隆的Request对象。    
 
@@ -201,7 +206,7 @@ async def json(self, *, loads=json.loads):
     body = await self.text()
     return loads(body)
 ```
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**: loads(callable) - 任何接受str并返回JSON内容的可调用对象（默认是json.loads()）。   
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**: loads(callable) - 任何接受str并返回JSON内容的<a href="https://aiohttp.readthedocs.io/en/stable/glossary.html#term-callable">可调用对象</a>（默认是json.loads()）。   
 
 ### 注意
     该方法在内部存储已读信息，之后的调用会返回同样的值。
@@ -218,10 +223,10 @@ async def multipart(self, *, reader=aiohttp.multipart.MultipartReader):
     该方法并不在内部存储已读信息。也就是说你读完一次之后不能在用它读第二次了。
 
 ### 扩展
-    使用Multipart。
+<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/WorkWithMultipart.md"> 使用Multipart</a>。
 
 &ensp;&ensp;&ensp; *coroutine post()*     
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个从请求主体中读取POST参数的协程方法。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个从请求主体中读取POST参数的<a href="https://docs.python.org/3/library/asyncio-task.html#coroutine">协程</a>方法。    
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回带有已解析后的数据的MultiDictProxy实例对象。      
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果HTTP方法不是 POST, PUT, PATCH, TRACE 或 DELETE，或者content_type非空，或者存在application/x-www-form-urlencoded，multipart/form-data，将会返回空的并联字典（multidict）。
 
@@ -229,7 +234,7 @@ async def multipart(self, *, reader=aiohttp.multipart.MultipartReader):
     该方法在内部存储已读信息，之后的调用会返回同样的值。
 
 &ensp;&ensp;&ensp; *coroutine release()*      
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 用于释放请求。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 用于释放请求。          
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 未读的HTTP主体将会被清空。    
 
 ### 注意
@@ -238,8 +243,8 @@ async def multipart(self, *, reader=aiohttp.multipart.MultipartReader):
 
 *class aiohttp.web.Request*
 &ensp;&ensp;&ensp; 在web处理器中接受请求信息的Request类。      
-&ensp;&ensp;&ensp; 所有的处理器的第一个参数都要接受Request类的实例对象。      
-&ensp;&ensp;&ensp; 该类派生于BaseRequest，支持父类中所有的方法和属性。还有几个额外的：
+&ensp;&ensp;&ensp; 所有的<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#处理器">处理器</a>的第一个参数都要接受Request类的实例对象。      
+&ensp;&ensp;&ensp; 该类派生于BaseRequest，支持父类中所有的方法和属性。还有几个额外的：          
 &ensp;&ensp;&ensp; **match_info**     
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回AbstractMatchInfo实例对象，内容是路由解析的结果，该属性只读。     
 
@@ -247,7 +252,7 @@ async def multipart(self, *, reader=aiohttp.multipart.MultipartReader):
     属性的具体类型由路由决定，如果app.router是UrlDispatcher,则该属性包含的是UrlMappingMatchInfo实例对象。
 
 &ensp;&ensp;&ensp; **app**      
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回一个用于调用请求处理器的应用（Application）实例对象。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回一个用于调用<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#处理器">请求处理器</a>的应用（Application）实例对象。
 
 
 ### 注意
@@ -259,7 +264,7 @@ async def multipart(self, *, reader=aiohttp.multipart.MultipartReader):
 为了设计考虑，`Response`的父类是`StreamResponse`。      
 如果请求支持keep-alive的话，响应也是同样支持的，无需其他操作。    
 当然，你可以使用`force_close()`来禁用keep-alive。     
-从web处理器中进行响应通常的做法是返回一个`Response`实例对象:
+从<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#处理器">web处理器</a>中进行响应通常的做法是返回一个`Response`实例对象:
 ```
 def handler(request):
     return Response("All right!")
@@ -430,7 +435,7 @@ await resp.drain()
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用 `drain()`能让事件循环安排写和刷新缓存器的操作。尤其是在写了一个很大的数据时，调用（其他）write()时协程不会被启动。
 
 &ensp;&ensp;&ensp; *coroutine write_eof()*      
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个可以作为HTTP响应结束标志的协程方法。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 一个可以作为HTTP响应结束标志的<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#处理器">协程</a>方法。     
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 如果需要的话，内部会在完成请求处理后调用这个方法。    
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 调用`write_eof()`后，任何对响应对象的操作都是禁止的。   
 
@@ -452,6 +457,7 @@ Response(*, body=None, status=200, reason=None, text=None, headers=None, content
 * text (str) - 响应主体。
 * content_type (str) - 响应的内容类型。如果有传入text参数的话则为`text/plain`，否则是`application/octet-stream`。
 * charset (str) - 响应的charset。如果有传入text参数则为`utf-8`，否则是None。   
+
 &ensp;&ensp;&ensp; **body**       
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 存储响应内容或者叫响应主体，该属性可读可写，类型为bytes。     
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 设置body会重新计算content_length的值。     
@@ -598,7 +604,7 @@ async for msg in ws:
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 该方法新增于0.22版本。
 
 ### 扩展
-    WebSockets处理。
+<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#websockets">WebSockets处理</a>。
 
 ### WebSocketReady
 *class aiohttp.web.WebSocketReady*       
@@ -622,9 +628,9 @@ if not await ws.can_prepare(...):
 ## 应用和路由器
 ### 应用
 应用（Application）是web服务器的代名词。       
-要得到完整地可工作例子，你必须创建应用（Application），路由表（Router）并且使用`Server`创建服务器套接字作为协议工厂。*Server*可以使用`Application.make_handler()`来创建。      
+要得到完整地可工作例子，你必须创建应用（Application）和路由器（Router）并且使用`Server`创建服务器套接字作为协议工厂。*Server*可以使用`Application.make_handler()`来创建。      
 应用(Application)中包含一个路由实例对象和一个在应用运行期间被调用的回调列表。       
-同时应用(Application)还是一个类字典对象，所以你可以用它作为全局共享数据容器，你可以在处理器中使用`Request.app`来访问它：
+同时应用(Application)还是一个类字典对象，所以你可以用它作为<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#数据共享">全局共享数据容器</a>，你可以在处理器中使用`Request.app`来访问它：
 ```
 app = Application()
 app['database'] = await aiopg.create_engine(**db_config)
@@ -653,7 +659,7 @@ async def handler(request):
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回logging.Logger实例对象（用于存储应用程序日志）。      
 
 &ensp;&ensp;&ensp; **loop**     
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回用于处理HTTP请求的事件循环。     
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回用于处理HTTP请求的<a href="https://docs.python.org/3/library/asyncio-eventloop.html#asyncio-event-loop">事件循环</a>。     
 
 &ensp;&ensp;&ensp; **debug**     
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回布尔值，表示debug组件是否开启。    
@@ -676,9 +682,8 @@ async def on_startup(app):
 ```
  
 ### 扩展:
-```
-后台任务。
-```
+<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#后台任务">后台任务</a>。
+
 
 &ensp;&ensp;&ensp; **on_shutdown**      
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  一个在应用程序关闭时触发的信号。      
@@ -717,6 +722,7 @@ async def on_cleanup(app):
 * max_field_size (int) - 最大标题字段（header field）大小。默认是8190。
 * linegering_time (float) - 当延迟关闭开启时，服务器读取以及忽略从客户端传来的额外信息的最大时间。传入0来禁止延迟关闭。
 * linegering_timeout (float) - 延迟关闭工作时，等待客户端送达额外信息的超时时间。     
+
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;你应该把这个方法所返回的结果作为`protocol_factory`传递给`create_server()`：
 ```
 loop = asyncio.get_event_loop()
@@ -748,7 +754,7 @@ await loop.create_server(app.make_handler(),
     没有添加路由和倒推路由（由路由名来获得URL）的方法。这些已是路由部署的全部细节了（但是说真的，用这个路由你需要在你的应用程序中自己解决这个问题）。
 
 ## Server
-一个与`create_server()`兼容的协议工厂。
+一个与`create_server()`兼容的协议工厂。          
 *class aiohttp.web.Server*      
 &ensp;&ensp;&ensp; 该类用于创建处理HTTP连接的HTTP协议对象。     
 
@@ -775,12 +781,13 @@ aiohttp.web提供的部署方式为`UrlDispatcher`。
 &ensp;&ensp;&ensp; 如果在创建路由时你指定了`name`参数，那么这就是一个命名路由了。      
 &ensp;&ensp;&ensp; 命名路由可以调用`app.router[name]`获得，也可以用于检测该名字是否在`app.router`中。        
 
-&ensp;&ensp;&ensp; **add_resource(path, \*, name=None)**
+&ensp;&ensp;&ensp; **add_resource(path, \*, name=None)**        
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 添加一个资源到路由表尾部。      
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; path可以只是字符串`'/a/b/c'`，也可以带变量`'/a/{var}'`。       
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：     
 * path (str) - 资源路径。     
 * name (str) - 资源名，可选。      
+
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回创建的资源实例（`PlainResource或DynamicResource`）。      
 
 &ensp;&ensp;&ensp; **add_route(method, path, handler, \*, name=None, expect_handler=None)**        
@@ -836,7 +843,7 @@ aiohttp.web提供的部署方式为`UrlDispatcher`。
 
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 0.18.0版本修改的内容: 在支持的平台中，转发文件使用文件发送系统（sendfile system）。       
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 0.19.0版本修改的内容: 可以使用环境变量`AIOHTTP_NOSENDFILE=1`来关闭文件发送系统。        
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 1.2.0  版本修改的内容: 发送gzip压缩的文件路径后会+`.gz`。        
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 1.2.0   版本修改的内容: 发送gzip压缩的文件路径后会+`.gz`。        
 
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **参数**：          
 * prefix (str) - URL路径前缀，用于加到静态文件中。
@@ -915,7 +922,7 @@ app.router.named_resources()["name"]
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 与资源相同的路由会共用一个资源名称。            
 
 ## Resource
-默认路由`UrlDispatcher`会同资源一起工作。     
+默认路由器`UrlDispatcher`会同<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/Glossary.md#resource">资源(resource)</a>一起工作。     
 资源是路由表中的一个含有路径，独特的名字和至少有一条路由的组件。     
 web处理器会按以下方式进行检索:
 1. 从资源中一个个迭代。       
@@ -970,7 +977,7 @@ url = app.router['resource_name'].url_for().with_query({'a': 1, 'b': 2})
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 新增于 1.1版本。       
 
 &ensp;&ensp;&ensp; **url(\*\*kwargs)**        
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 同上。
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 同上。         
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 1.1版本后不再赞成使用，请使用`url_for()`代替。      
 
 *class aiohttp.web.Resource*       
@@ -994,7 +1001,7 @@ url = app.router['resource_name'].url_for().with_query({'a': 1, 'b': 2})
 
 *class aiohttp.web.DynamicResource*        
 &ensp;&ensp;&ensp; 一个资源类，继承于`Resource`。      
-&ensp;&ensp;&ensp; 该类等价于使用变量匹配的资源。如'/path/{to}/{param}'。      
+&ensp;&ensp;&ensp; 该类等价于使用<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#可变形资源">变量匹配的资源</a>。如'/path/{to}/{param}'。      
 
 &ensp;&ensp;&ensp; **url_for(\*\*params)**        
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回所属资源的URL。  
@@ -1004,7 +1011,7 @@ url = app.router['resource_name'].url_for().with_query({'a': 1, 'b': 2})
 
 *class aiohttp.web.StaticResource*      
 &ensp;&ensp;&ensp; 一个资源类，继承于`Resource`。     
-&ensp;&ensp;&ensp;等价于使用静态文件的资源。     
+&ensp;&ensp;&ensp;等价于使用<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#静态文件的处理">静态文件的资源</a>。     
 
 &ensp;&ensp;&ensp; **url_for(filename, append_version=None)**       
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 返回文件路径并带有资源的前缀。      
@@ -1088,7 +1095,7 @@ app.router.add_routes([web.get('/get', handle_get),
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; HTTP方法（GET, POST之类），类型为字符串。     
 
 &ensp;&ensp;&ensp; **path**       
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 资源的路径，比如/path/to，可以是包含`{}`的可变资源，类型为字符串。   
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 资源的路径，比如/path/to，可以是包含`{}`的<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#可变形资源">可变资源</a>，类型为字符串。   
 
 &ensp;&ensp;&ensp; **handler**       
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 用于处理HTTP请求的协程函数。       
@@ -1123,7 +1130,7 @@ app.router.add_routes([web.get('/get', handle_get),
 &ensp;&ensp;&ensp; 新增于2.3版本。   
 
 ### xxx
-*aiohttp.web.route(method, path, handler, *, name=None, expect_handler=None)*
+*aiohttp.web.route(method, path, handler, \*, name=None, expect_handler=None)*           
 &ensp;&ensp;&ensp; 返回处理POST请求的`RouteDef`（文档中应该写错了，这个方法处理什么由method决定）。请看`UrlDispatcher.add_route()`获取参数信息。     
 &ensp;&ensp;&ensp; 新增于2.3版本。   
 
@@ -1243,7 +1250,7 @@ app.router.add_route('*', '/view', MyView)
 &ensp;&ensp;&ensp; 适合作为基础aiohttp项目使用。生存配置可能需要更复杂些的启动器，但在项目最初阶段，用它就够了。      
 &ensp;&ensp;&ensp; 该函数使用 `app.loop`作为事件循环。     
 &ensp;&ensp;&ensp; 服务器会监听你所提供的所有主机或Unix域套接字路径。如果没有提供任何主机或路径，或只提供了端口，则TCP服务器会监听 `0.0.0.0`(表示所有主机)。      
-&ensp;&ensp;&ensp; 在同一应用程序中将HTTP请求分发到多个主机或路径对于在同一个事件循环中处理请求没有执行效率上的提升。请查阅`Server Deployment`来了解如何进行分发工作以提升效率。      
+&ensp;&ensp;&ensp; 在同一应用程序中将HTTP请求分发到多个主机或路径对于在同一个事件循环中处理请求没有执行效率上的提升。请查阅<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerDeployment.md">Server Deployment</a>来了解如何进行分发工作以提升效率。      
 
 &ensp;&ensp;&ensp; **参数**：     
 * app - 要运行的`Application`实例对象。      
@@ -1276,15 +1283,17 @@ app.router.add_route('*', '/view', MyView)
 ## 中间件     
 ### 标准化路径的中间件
 *aiohttp.web.normalize_path_middleware(\*, append_slash=True, merge_slashes=True)*       
-&ensp;&ensp;&ensp; 标准化请求中路径的中间件。标准化的意思是：
+&ensp;&ensp;&ensp; 标准化请求中路径的中间件。标准化的意思是：         
 * 在路径尾添加一个斜线（'/'）。
-* 将两个斜线变成一个斜线（'//'->'/'）。
+* 将两个斜线变成一个斜线（'//'->'/'）。            
+
 &ensp;&ensp;&ensp; 只要改路径符合规范，则立即返回。如果两个参数所指代的功能都是允许的话，执行顺序是这样的：
 1. merge_slashes 
 2. append_slash 
 3. 执行merge_slashes和append_slash
+
 &ensp;&ensp;&ensp; 如果路径至少符合其中一个条件，则重定向到一个新路径上。        
-&ensp;&ensp;&ensp; 在需要添加斜线时`append_slash`也需要是Ture才会执行。是True的话当一个资源定义时尾部有斜线，但请求没有斜线时，将会自动给请求加上斜线。
+&ensp;&ensp;&ensp; 在需要添加斜线时`append_slash`也需要是Ture才会执行。是True的话当一个资源定义时尾部有斜线，但请求没有斜线时，将会自动给请求加上斜线。         
 &ensp;&ensp;&ensp; 如果merge_slashes是True，将会把路径中连续的斜线变成一个斜线。
 
 

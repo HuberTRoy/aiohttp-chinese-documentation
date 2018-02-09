@@ -107,7 +107,7 @@ web.run_app(app)
 我们还支持<a href="https://stackoverflow.com/questions/tagged/aiohttp">Stack Overflow</a>. 在你的问题上添加aiohttp标签即可。
 
 ## 贡献
-请在写一个PR前阅读下<a href="https://aiohttp.readthedocs.io/en/stable/contributing.html#aiohttp-contributing">贡献须知</a>。
+请在写一个PR前阅读下<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/Contributing.md">贡献须知</a>。
 
 ## 作者和授权
 `aiohttp` 大部分由 Nikolay Kim 和 Andrew Svetlov编写.
