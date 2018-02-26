@@ -1,10 +1,10 @@
-为Python提供异步HTTP 客户端/服务端编程，基于<a href="https://aiohttp.readthedocs.io/en/stable/glossary.html#term-asyncio">asyncio(Python用于支持异步编程的标准库)</a>。
+aiohttp是一个为Python提供异步HTTP 客户端/服务端编程，基于<a href="https://aiohttp.readthedocs.io/en/stable/glossary.html#term-asyncio">asyncio(Python用于支持异步编程的标准库)</a>的异步库。
 
 ## 核心功能:
 
 * 同时支持<a href="https://aiohttp.readthedocs.io/en/stable/client.html#aiohttp-client">客户端使用</a>和<a href="https://aiohttp.readthedocs.io/en/stable/web.html#aiohttp-web">服务端使用</a>。
 * 同时支持<a href="https://aiohttp.readthedocs.io/en/stable/web.html#aiohttp-web-websockets">服务端WebSockets组件</a>和<a href="https://aiohttp.readthedocs.io/en/stable/client.html#aiohttp-client-websockets">客户端WebSockets组件</a>，开箱即用呦。
-* web服务器具有<a href="https://aiohttp.readthedocs.io/en/stable/web.html#aiohttp-web-middlewares">中间件</a>，<a href="https://aiohttp.readthedocs.io/en/stable/web.html#aiohttp-web-signals">信号组件</a>和可插拔路由。
+* web服务器具有<a href="https://aiohttp.readthedocs.io/en/stable/web.html#aiohttp-web-middlewares">中间件</a>，<a href="https://aiohttp.readthedocs.io/en/stable/web.html#aiohttp-web-signals">信号组件</a>和可插拔路由的功能。
 
 ## aiohttp库安装:
 `$ pip install aiohttp`
