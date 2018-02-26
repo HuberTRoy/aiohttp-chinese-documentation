@@ -14,7 +14,7 @@ async with aiohttp.ClientSession() as session:
 ```
 我们现在有了一个`会话(session)`对象，由**ClientSession**对象赋值而来，还有一个变量`resp`，它其实是**ClientResponse**对象。我们可以从这个响应对象中获取我们任何想要的信息。协程方法`ClientSession.get()`的主要参数接受一个HTTP URL。
 
-发起HTTP POST请求我们可以使用协程方法**ClientSession.post()**:
+发起HTTP POST请求我们可以使用协程方法**ClientSession.post**():
 ```
 session.post('http://httpbin.org/post', data=b'data')
 ```
@@ -30,7 +30,7 @@ session.patch('http://httpbin.org/patch', data=b'data')
 不要为每个请求都创建一个会话。大多数情况下每个应用程序只需要一个会话就可以执行所有的请求。
 每个会话对象都包含一个连接池，可复用的连接和持久连接状态(keep-alives，这两个是默认的)可提升总体的执行效率。
 
-## JSON请求:
+## 发起JSON请求:
 每个会话的请求方法都可接受json参数。
 ```
 async with aiohttp.ClientSession() as session:
@@ -45,7 +45,7 @@ async with aiohttp.ClientSession(json_serialize=ujson.dumps) as session:
 ```
 
 ## 传递URL中的参数:
-你可能经常想在URL中发送一系列的查询信息。如果你手动构建他们，这些信息会以键值对的形式出现在?后面，比如: `httpbin.org/get?key=val`。请求对象允许你使用**dict(字典，python中的数据类型)**发送它们，使用`params`参数即可。例如: 如果你要把 `key1=value1，key2=value2`放到`httpbin.org/get`后面，你可以用下面的方式:
+你可能经常想在URL中发送一系列的查询信息。如果你手动构建他们，这些信息会以键值对的形式出现在?后面，比如: `httpbin.org/get?key=val`。请求对象允许你使用**dict（字典，python中的数据类型）**发送它们，使用`params`参数即可。例如: 如果你要把 `key1=value1，key2=value2`放到`httpbin.org/get`后面，你可以用下面的方式:
 
 ```
 params = {'key1': 'value1', 'key2': 'value2'}
@@ -54,7 +54,7 @@ async with session.get('http://httpbin.org/get',
     assert str(resp.url) == 'http://httpbin.org/get?key2=value2&key1=value1'
 ```
 看，URL已经被正确的编码啦。
-同键不同值的**并联字典(MultiDict )**也同样支持。
+同键不同值的**并联字典（MultiDict） **也同样支持。
 可使用带有两个tuples(元组，python中的数据类型)的list(列表，python中的数据类型)来构建:
 ```
 params = [('key', 'value1'), ('key', 'value2')]
@@ -81,7 +81,7 @@ await session.get(URL('http://example.com/%30', encoded=True))
 > ### 警告:
 传递*params*时不要用`encode=True`，这俩参数不能同时使用。
 
-## 响应内容:
+## 获取响应内容
 我们可以读取服务器的响应内容。想想我们获取GitHub时间轴的例子:
 ```
 async with session.get('https://api.github.com/events') as resp:
@@ -91,12 +91,12 @@ async with session.get('https://api.github.com/events') as resp:
 ```
 '[{"created_at":"2015-06-12T14:06:22Z","public":true,"actor":{...
 ```
-`aiohttp`将会自动解码内容。你可以为**text()**方法指定编码(使用encoding参数):
+`aiohttp`将会自动解码内容。你可以为**text**()方法指定编码(使用encoding参数):
 ```
 await resp.text(encoding='windows-1251')
 ```
 
-## 二进制响应内容:
+## 获取二进制响应内容
 你也可以以字节形式获取响应，这样得到的就不是文本了:
 ```
 print(await resp.read())
@@ -105,7 +105,7 @@ b'[{"created_at":"2015-06-12T14:06:22Z","public":true,"actor":{...
 `gzip`和`defalte`传输编码会自动解码。
 你也可以使其支持`brotli`传输编码的解码，只需安装<a href="https://github.com/python-hyper/brotlipy">brotlipy</a>即可。
 
-## JSON响应内容:
+## 获取JSON响应内容
 以防你需要处理JSON数据，内置了一个JSON解码器:
 ```
 async with session.get('https://api.github.com/events') as resp:
@@ -116,7 +116,7 @@ async with session.get('https://api.github.com/events') as resp:
 > ### 注意:
 这些方法会读出内存中所有响应的内容。如果你要读非常多的数据，考虑使用流式响应方法进行读取。请看之后的文档。
 
-## 流式响应内容:
+## 获取流式响应内容
 **read**(), **json**(), **text**()等方法使用起来很方便，但也要注意谨慎地使用。上述方法会将所有的响应内容加载到内存。举个例子，如果你要下载几个G的文件，这些方法还是会将所有内容都加载到内存，内存会表示"臣妾做不到啊~"(如果内存不够的话)。作为代替你可以用**content**属性。content其实是 **aiohttp.StreamReader**类的实例。`gzip`和`deflate`传输编码同样会自动解码。
 
 ```
@@ -134,10 +134,10 @@ with open(filename, 'wb') as fd:
 ```
 在使用**content**读了数据后，就不要在用**read**(), **json**(), **text**()了。
 
-## 请求信息:
+## 获取请求信息
 *ClientResponse（客户端响应）*对象含有request_info(请求信息)，主要是*url*和*headers*信息。 *raise_for_status*结构体上的信息会被复制给ClientResponseError实例。
 
-## 自定义Headers:
+## 自定义Headers
 如果你需要给某个请求添加HTTP头,可以使用headers参数，传递一个**dict**对象即可。
 比如，如果你想给之前的例子指定 content-type可以这样:
 ```
@@ -151,7 +151,7 @@ await session.post(url,
                    headers=headers)
 ```
 
-## 自定义Cookies:
+## 自定义Cookies
 发送你自己的cookies给服务器，你可以为**ClientSession**对象指定*cookies*参数:
 ```
 url = 'http://httpbin.org/cookies'
@@ -164,7 +164,7 @@ async with ClientSession(cookies=cookies) as session:
 > ### 注意:
 访问`httpbin.org/cookies` 会看到以JSON形式返回的cookies。查阅会话中的cookies请看<a href="https://aiohttp.readthedocs.io/en/stable/client_reference.html#aiohttp.ClientSession.cookie_jar">ClientSession.cookie_jar</a>。
 
-## 更复杂的POST请求:
+## 发起更复杂的POST请求
 一般来说，如果你想以表单形式发送一些数据 - 就像HTML表单。那么只需要简单的将一个dict通过*data*参数传递就可以。传递的dict数据会自动编码:
 ```
 payload = {'key1': 'value1', 'key2': 'value2'}
@@ -191,7 +191,7 @@ async with session.post(url, data=json.dumps(payload)) as resp:
     ...
 ```
 
-## 发送多部分编码文件(Multipart-Encoded):
+## 发送多部分编码文件(Multipart-Encoded)
 
 上传多部分编码文件:
 ```
@@ -216,7 +216,7 @@ await session.post(url, data=data)
 > ### 参见:
 <a href="https://aiohttp.readthedocs.io/en/stable/multipart.html#aiohttp-multipart">使用Multipart.</a>
 
-## 流式上传:
+## 流式上传
 **aiohttp** 支持多种形式的流式上传，允许你直接发送大文件而不必读到内存。
 
 下面是个简单的例子，提供类文件对象即可:
@@ -269,7 +269,7 @@ await session.post('http://httpbin.org/post',
                    data=r.content)
 ```
 
-## 上传预压缩过的数据:
+## 上传预压缩过的数据
 上传一个已经压缩过的数据，需要为Headers中的`Content-Encoding`指定算法名(通常是deflate或者是zlib).
 ```
 async def my_coroutine(session, headers, my_data):
@@ -281,7 +281,7 @@ async def my_coroutine(session, headers, my_data):
         pass
 ```
 
-## 持久连接(keep-alive), 连接池和cookies共享:
+## 持久连接(keep-alive), 连接池和cookies共享
 **ClientSession**可以在多个请求之间共享cookies:
 ```
 async with aiohttp.ClientSession() as session:
@@ -304,7 +304,7 @@ async with aiohttp.ClientSession(
 ```
 **ClientSession**支持持久连接和连接池，可直接使用，不需要额外操作。
 
-## 安全cookies:
+## 安全cookies
 **ClientSession**中的默认的**aiohttp.CookiesJar**使用的是严苛模式，<a href="https://tools.ietf.org/html/rfc2109.html">RFC 2109</a>明确禁止使用ip地址形式的URL携带cookies信息。比如: *http://127.0.0.1:80/cookie*
 这样很好，不过有些时候我们测试时需要允许携带cookies。在**aiohttp.CookiesJar**中传递*unsafe=True*来实现这一效果:
 
@@ -313,15 +313,15 @@ jar = aiohttp.CookieJar(unsafe=True)
 session = aiohttp.ClientSession(cookie_jar=jar)
 ```
 
-## 假人(Dummy) Cookie Jar:
+## 使用虚假Cookie Jar
 有时不想处理cookie。这时可以在会话中使用**aiohttp.DummyCookieJar**来达到目的。
 ```
 jar = aiohttp.DummyCookieJar()
 session = aiohttp.ClientSession(cookie_jar=jar)
 ```
 
-## 连接器:
-调整请求的传输层你可以为**ClientSession**及其同类组件传递自定义的连接器。例如:
+## 使用连接器
+想要调整请求的传输层你可以为**ClientSession**及其同类组件传递自定义的连接器。例如:
 ```
 conn = aiohttp.TCPConnector()
 session = aiohttp.ClientSession(connector=conn)
@@ -333,7 +333,7 @@ session = aiohttp.ClientSession(connector=conn)
 > ### 参见:
 查看<a href="https://aiohttp.readthedocs.io/en/stable/client_reference.html#aiohttp-client-reference-connectors">连接器</a>部分了解更多不同的连接器类型和配置选项信息。
 
-## 限制连接池的容量:
+## 限制连接池的容量
 限制同一时间打开的连接数可以传递limit参数:
 ```
 conn = aiohttp.TCPConnector(limit=30)
@@ -347,14 +347,14 @@ conn = aiohttp.TCPConnector(limit=30)
 conn = aiohttp.TCPConnector(limit=0)
 ```
 
-限制同一时间在同一个端点((`host`, `port`, `is_ssl`) 原文写了triple难道要表达"重要的事情说3遍？！")打开的连接数可指定limit_per_host参数:
+限制同一时间在同一个端点((`host`, `port`, `is_ssl`) 3者都一样的情况)打开的连接数可指定limit_per_host参数:
 ```
 conn = aiohttp.TCPConnector(limit_per_host=30)
 ```
 这样会限制在30.
 默认情况下是0(也就是不做限制)。
 
-## 使用自定义域名服务器:
+## 使用自定义域名服务器
 底层需要<a href="https://aiohttp.readthedocs.io/en/stable/glossary.html#term-aiodns">aiodns</a>支持:
 ```
 from aiohttp.resolver import AsyncResolver
@@ -434,7 +434,7 @@ assert exc.got == b'...'
 openssl x509 -in crt.pem -inform PEM -outform DER > crt.der
 ```
 > ### 注解:
-提示: 从16进制数字转换成二进制字节码，你可以用**binascii.unhexlify()**.
+提示: 从16进制数字转换成二进制字节码，你可以用**binascii.unhexlify**().
 
 **TCPConnector**中设置的*verify_ssl, fingerprint和ssl_context*都会被当做默认的verify_ssl, fingerprint和ssl_context，**ClientSession**或其他同类组件中的设置会覆盖默认值。
 
@@ -442,7 +442,7 @@ openssl x509 -in crt.pem -inform PEM -outform DER > crt.der
 *verify_ssl 和 ssl_context*是*互斥*的。
 *MD5*和*SHA1*指纹虽不赞成使用但是是支持的 - 这俩是非常不安全的哈希函数。
 
-## Unix 域套接字:
+## Unix 域套接字
 如果你的服务器使用UNIX域套接字你可以用**UnixConnector**:
 
 ```
@@ -450,7 +450,7 @@ conn = aiohttp.UnixConnector(path='/path/to/socket')
 session = aiohttp.ClientSession(connector=conn)
 ```
 
-## 代理支持:
+## 代理支持
 aiohttp 支持 HTTP/HTTPS形式的代理。你需要使用*proxy*参数:
 ```
 async with aiohttp.ClientSession() as session:
@@ -479,14 +479,14 @@ async with aiohttp.ClientSession() as session:
         print(resp.status)
 ```
 
-## 响应状态码:
+## 查看响应状态码
 我们可以查询响应状态码:
 ```
 async with session.get('http://httpbin.org/get') as resp:
     assert resp.status == 200
 ```
 
-## 响应头信息:
+## 获取响应头信息
 我们可以查看服务器的响应信息, **ClientResponse.headers**使用的数据类型是**CIMultiDcitProxy**:
 ```
 >>> resp.headers
@@ -517,7 +517,7 @@ async with session.get('http://httpbin.org/get') as resp:
  (b'CONNECTION', b'keep-alive'))
 ```
 
-## 响应cookies:
+## 获取响应cookies:
 如果某响应包含一些Cookies，你可以很容易地访问他们:
 ```
 url = 'http://example.com/some/cookie/setting/url'
@@ -527,7 +527,7 @@ async with session.get(url) as resp:
 > ### 注意:
 响应中的cookies只包含重定向链中最后一个请求中的`Set-Cookies`头信息设置的值。如果每一次重定向请求都收集一次cookies请使用<a href="https://aiohttp.readthedocs.io/en/stable/client.html#aiohttp-client-session"> aiohttp.ClientSession</a>对象.
 
-## 响应历史:
+## 获取响应历史
 如果一个请求被重定向了，你可以用**history**属性查看其之前的响应:
 ```
 >>> resp = await session.get('http://example.com/some/redirect/')
@@ -538,9 +538,9 @@ async with session.get(url) as resp:
 ```
 如果没有重定向或`allow_redirects`设置为`False`，history会被设置为空。
 
-## WebSockets:
+## 使用WebSockets
 **aiohttp**提供开箱即用的客户端websocket。
-你需要使用**aiohttp.ClientSession.ws_connect()**协程对象。它的第一个参数接受URL，返回值是**ClientWebSocketResponse**，这样你就可以用响应的方法与websocket服务器进行通信。
+你需要使用**aiohttp.ClientSession.ws_connect**()协程对象。它的第一个参数接受URL，返回值是**ClientWebSocketResponse**，这样你就可以用响应的方法与websocket服务器进行通信。
 ```
 session = aiohttp.ClientSession()
 async with session.ws_connect('http://example.org/websocket') as ws:
@@ -559,8 +559,8 @@ async with session.ws_connect('http://example.org/websocket') as ws:
 ```
 你只能使用一种读取方式(例如`await ws.receive()` 或者 `async for msg in ws:`)和写入方法，但可以有多个写入任务，写入任务也是异步完成的(`ws.send_str('data')`)。
 
-## 超时:
-默认情况下每个IO操作有5分钟超时时间。可以通过给**ClientSession.get()**及其同类组件传递`timeout`来覆盖原超时时间:
+## 设置超时
+默认情况下每个IO操作有5分钟超时时间。可以通过给**ClientSession.get**()及其同类组件传递`timeout`来覆盖原超时时间:
 ```
 async with session.get('https://github.com', timeout=60) as r:
     ...
@@ -577,7 +577,7 @@ with async_timeout.timeout(0.001):
 > ### 注意:
 超时时间是累计的，包含如发送情况，重定向，响应解析，处理响应等所有操作在内...
 
-## 不错的结尾:
+## 愉快地结束:
 当一个包含`ClientSession`的`async with`代码块的末尾行结束时(或直接调用了`.close()`)，因为asyncio内部的一些原因底层的连接其实没有关闭。在实际使用中，底层连接需要有一个缓冲时间来关闭。然而，如果事件循环在底层连接关闭之前就结束了，那么会抛出一个 资源警告: 存在未关闭的传输(通道)(`ResourceWarning: unclosed transport`),如果警告可用的话。
 为了避免这种情况，在关闭事件循环前加入一小段延迟让底层连接得到关闭的缓冲时间。
 对于非SSL的`ClientSession`, 使用0即可(`await asyncio.sleep(0)`):
