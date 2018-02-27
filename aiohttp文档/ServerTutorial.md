@@ -47,12 +47,12 @@ $ python3 -c 'import aiohttp; print(aiohttp.__version__)'
     └── static
         └── style.css
 ```
-# 用aiohttp构建我们第一个应用程序
+# 开始用aiohttp构建我们的第一个应用程序
 
 该指南借鉴了Django投票系统指南。
 
-# 应用程序
-aiohttp的服务端程序都是 aiohttp.web.Application实例对象。用于创建信号，连接路由等程序。
+## 创建应用程序
+aiohttp的服务端程序都是 `aiohttp.web.Application`实例对象。用于创建信号，连接路由等。
 
 使用下列代码可以创建一个应用程序:
 ```
@@ -64,7 +64,7 @@ app = web.Application()
 web.run_app(app, host='127.0.0.1', port=8080)
 ```
 
-将其保存在 aiohttpdemo_polls/main.py 然后开启服务器:
+将其保存在`aiohttpdemo_polls/main.py`然后开启服务器:
 `$ python3 main.py`
 
 你会在命令行中看到如下输出:
@@ -73,13 +73,13 @@ web.run_app(app, host='127.0.0.1', port=8080)
 ======== Running on http://127.0.0.1:8080 ========
 (Press CTRL+C to quit)
 ```
-在浏览器中打开 http://127.0.0.1:8080 或在命令行中:
+在浏览器中打开 http://127.0.0.1:8080 或在命令行中使用`curl`:
 `$ curl -X GET localhost:8080`
 
-啊咧，出现了404: Not Found. 这是因为我们并没有创建路由和和展示页面。
+啊咧，出现了404: Not Found. 呃...因为我们并没有创建路由和和展示页面。
 
-# 视图
-我们来一起创建第一个展示页面(视图)。创建个文件 aiohttpdemo_polls/views.py 然后写入:
+## 创建视图
+我们来一起创建第一个展示页面(视图)。我们先创建个文件`aiohttpdemo_polls/views.py`然后写入:
 ```
 from aiohttp import web
 
@@ -87,7 +87,7 @@ async def index(request):
     return web.Response(text='Hello Aiohttp!')
 ```
 
-index就是我们创建的展示页，然后我们创建个路由表连接到这个展示页上。我们在创建个 aiohttpdemo_polls/routes.py(将视图(展示页)，将路由表和模型分开写是很好的实践。创建实际项目时可能会有多个同类文件，这样分开放可以让自己很清楚。):
+`index`就是我们创建的展示页，然后我们创建个路由连接到这个展示页上。我们来把路由放在`aiohttpdemo_polls/routes.py`文件中（将路由表和模型分开写是很好的实践。创建实际项目时可能会有多个同类文件，这样分开放可以让自己很清楚。):
 
 ```
 from views import index
@@ -96,7 +96,7 @@ def setup_routes(app):
     app.router.add_get('/', index)
 ```
 
-我们还要在main.py中调用setup_routes。
+我们还要在`main.py`中调用`setup_routes`。
 ```
 from aiohttp import web
 from routes import setup_routes
@@ -124,7 +124,7 @@ Hello Aiohttp!
     │   └── views.py
 ```
 
-# 配置文件
+## 使用配置文件
 aiohttp不需要任何配置文件，也没有内置支持任何配置架构。
 但考虑到这些事实:
 1. 99%的服务器都有配置文件。
@@ -146,12 +146,12 @@ conf = load_config(str(pathlib.Path('.') / 'config' / 'polls.yaml'))
 app['config'] = conf
 ```
 
-# 数据库
-## 准备工作
-这份指南中我们使用最新版的 PostgreSQL数据库。 你可访问以下链接下载: http://www.postgresql.org/download/
+## 构建数据库
+### 准备工作
+这份指南中我们使用最新版的`PostgreSQL`数据库。 你可访问以下链接下载: http://www.postgresql.org/download/
 
-## 数据库架构
-我们使用SQLAlchemy来写数据库架构。我们只要创建两个简单的模块——question和choice:
+### 数据库架构
+我们使用`SQLAlchemy`来写数据库架构。我们只要创建两个简单的模块——`question`和`choice`:
 ```
 import sqlalchemy as sa 
 
@@ -195,8 +195,8 @@ choice = sa.Table(
 |votes|
 |question_id|
 
-# 创建连接引擎
-为了从数据库中查询数据我们需要一个引擎实例对象。假设conf变量是一个带有连接信息的配置字典，Postgres会使用异步的方式完成该操作:
+### 创建连接引擎
+为了从数据库中查询数据我们需要一个引擎实例对象。假设`conf`变量是一个带有连接信息的配置字典，`Postgre`s会使用异步的方式完成该操作:
 ```
 async def init_pg(app):
     conf = app['config']
@@ -211,12 +211,12 @@ async def init_pg(app):
 
     app['db'] = engine
 ```
-最好将连接数据库的函数放在on_startup信号中:
+最好将连接数据库的函数放在`on_startup`信号中:
 ```
 app.on_startup.append(init_pg)
 ```
 
-# 优雅的关闭
+### 关闭数据库
 程序退出时一块关闭所有的资源接口是一个很好的做法。
 使用on_cleanup信号来关闭数据库接口:
 ```
@@ -227,7 +227,7 @@ async def close_pg(app):
 app.on_cleanup.append(close_pg)
 ```
 
-# 使用模板
+## 使用模板
 
 我们来添加些更有用的页面:
 ```
@@ -246,9 +246,9 @@ async def poll(request):
         }
 ```
 
-编写页面时使用模板是很方便的。我们返回带有页面内容的字典，aiohttp_jinja2.template 装饰器会用jinja2模板加载它。
+编写页面时使用模板是很方便的。我们返回带有页面内容的字典，`aiohttp_jinja2.template`装饰器会用`jinja2`模板加载它。
 
-当然我们要先安装下 aiohttp_jinja2:
+当然我们要先安装下`aiohttp_jinja2`:
 ```
 $ pip install aiohttp_jinja2
 
@@ -262,9 +262,9 @@ aiohttp_jinja2.setup(
     app, loader=jinja2.PackageLoader('aiohttpdemo_polls', 'templates'))
 ```
 
-我们将其放在 polls/aiohttpdemo_polls/templates文件夹。
+我们将其放在`polls/aiohttpdemo_polls/templates`文件夹中。
 
-# 静态文件
+## 静态文件
 每个web站点都有一些静态文件: 图片啦，JavaScript，CSS文件啦等等。
 在生产环境中处理这些静态文件最好的方法是使用NGINX或CDN服务做反向代理。
 但在开发环境中使用aiohttp服务器处理静态文件是很方便的。
@@ -277,7 +277,7 @@ app.router.add_static('/static/',
 ```
 project_root表示根目录。
 
-# 中间件
+## 使用中间件
 中间件是每个web处理器必不可少的组件。它的作用是在处理器处理请求前预处理请求以及在得到响应后发送出去。
 
 我们下面来实现一个用于显示漂亮的404和500页面的简单中间件。
@@ -287,12 +287,12 @@ def setup_middlewares(app):
                                     500: handle_500})
     app.middlewares.append(error_middleware)
 ```
-###
-中间件(middleware)是一个接受*应用程序(application)*和*后续处理器(next handler)*的加工厂。
+
+中间件(middleware)本身是一个接受*应用程序（application）*和*后续处理器（next handler）*的加工厂。
 
 中间件工厂返回一个与web处理器一样接受请求并返回响应的中间件处理器。
 
-用于处理HTTP异常的中间件:
+下面实现一个用于处理HTTP异常的中间件:
 ```
 def error_pages(overrides):
     async def middleware(app, handler):
@@ -315,7 +315,7 @@ def error_pages(overrides):
 ```
 
 
-这些overrides（handle_404和handle_500）只是简单的用Jinja2模板渲染:
+这些`overrides（handle_404和handle_500）`只是简单的用`Jinja2`模板渲染:
 ```
 async def handle_404(request, response):
     response = aiohttp_jinja2.render_template('404.html',
