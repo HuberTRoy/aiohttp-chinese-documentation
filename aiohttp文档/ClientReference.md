@@ -19,7 +19,7 @@ async def main():
         print(html)
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(main(loop))
+loop.run_until_complete(main())
 ```
 *新增于0.17版本。*
 
