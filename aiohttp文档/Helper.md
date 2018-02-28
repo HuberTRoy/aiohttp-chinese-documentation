@@ -37,7 +37,7 @@
 &ensp;&ensp;&ensp; **TRY_AGAIN_LATER**   
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  服务过载。客户端需要连接到不同的IP地址（如果有的话）或尝试重新连接。   
 
-*class aiohttp.WSMsgType*  
+*class aiohttp.WSMsgType*   
 &ensp;&ensp;&ensp; 描述`WSMessage`类型的`整数枚举(IntEnum)`类。   
 
 &ensp;&ensp;&ensp; **CONTINUATION**   
@@ -86,26 +86,26 @@
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  新增于0.22版本。    
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  **参数：** loads - 自定义JSON解码函数。    
 
-&ensp;&ensp;&ensp; **tp**
+&ensp;&ensp;&ensp; **tp**     
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 不赞成使用的**type**别名函数。   
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 1.0版本后不再建议使用。   
 
 # 信号
 信号是一个包含注册过的异步回调函数的列表。   
-信号的生命周期有两个阶段: 在信号的内容被标准列表操作所填充之后: sig.append()之类的。     
-第二个是sig.freeze()调用之后，在这之后信号会被冻结: 添加，删除和丢弃回调函数都是被禁止的。     
-唯一可做的就是调用之前已经注册过的回调函数: await sig.send(data) 。   
+信号的生命周期有两个阶段: 在信号的内容被标准列表操作所填充之后: `sig.append()`之类的。     
+第二个是`sig.freeze()`调用之后，在这之后信号会被冻结: 添加，删除和丢弃回调函数都是被禁止的。     
+唯一可做的就是调用之前已经注册过的回调函数: `await sig.send(data)` 。   
 
-更多实用例子请看<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#信号">aiohttp.web中的信号</a>章节。    
+更多实用例子请看<a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ServerUsage.md#信号">`aiohttp.web`中的信号</a>章节。    
 
 *class aiohttp.Signal*     
-&ensp;&ensp;&ensp;  信号组件，具有collections.abc.MutableSequence接口。    
+&ensp;&ensp;&ensp;  信号组件，具有`collections.abc.MutableSequence`接口。    
 
 &ensp;&ensp;&ensp; *coroutine send(\*args, \*\*kwargs)*    
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; 从列表头部开始逐个调用已注册的回调函数。    
 
 &ensp;&ensp;&ensp; *frozen*    
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;如果 freeze()被调用过则为True。该属性只读。    
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;如果 `freeze()`被调用过则为`True`。该属性只读。    
 
 &ensp;&ensp;&ensp; *freeze()*   
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  冻结列表。在这之后所有内容均不允许改动。    

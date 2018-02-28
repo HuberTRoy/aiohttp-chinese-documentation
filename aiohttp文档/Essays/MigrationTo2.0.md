@@ -65,8 +65,8 @@ async with session.post('http://httpbin.org/post',
 
 # 服务器方面
 
-## ServerHttpProtocol和低级服务器的一些详情
-为了提供更好的执行效率和支持HTTP流水线，内部重新进行了设计。`ServerHttpProtocol`已移除，与`RequestHandler`合并在一起，很多低级api也被移除。
+## ServerHttpProtocol和底层服务器的一些详情
+为了提供更好的执行效率和支持HTTP流水线，内部重新进行了设计。`ServerHttpProtocol`已移除，与`RequestHandler`合并在一起，很多底层api也被移除。
 
 ## 应用方面
 1. 构造器的loop已不赞成再使用。Loop会从应用运行器中获取，*run_app*函数可以被任意gunicorn worker使用。

@@ -19,7 +19,7 @@
 * 最大的问题是“导入时会有副作用”。
 * 路由匹配是有序的，这样做的话在导入时很难保证顺序。
 * 在大部分大型应用中，都表示在某文件中写路由表比这样好很多。
-所以，基于以上原因，我们就没有提供这个功能。不过如果你真的很想用这个功能，继承下web.Application然后自己写一个吧~。
+所以，基于以上原因，我们就没有提供这个功能。不过如果你真的很想用这个功能，继承下`web.Application`然后自己写一个吧~。
 
 # aiohttp有没有Flask中的蓝图或Django中的App的概念呢？
 如果你计划写一个大型应用程序，你可以考虑使用嵌套应用。它的功能就像Flask的蓝图和Django的应用一样。
@@ -62,7 +62,7 @@ async def init_app(loop):
 最后，在如今的2016年夏这更不应该是个问题了，主流都已经是Python 3.5啦。
 
 # 如何让中间件可以存储数据以便让web-handler使用？
-aiohttp.web.Request与aiohttp.web.Application一样都支持字典接口（dict）。
+`aiohttp.web.Request`与`aiohttp.web.Application`一样都支持字典接口（dict）。
 只需要将数据放到里面即可：
 ```
 async def handler(request):
@@ -74,7 +74,7 @@ async def handler(request):
 比如我们现在有两个事件：
 1. 某一终端用户的WebSocket事件。
 2. Redis PubSub从应用的其他地方接受信息并要通过websocket发送给其他用户的事件。
-并行地调用aiohttp.web.WebSocketResponse.receive()是不行的，同一时间只有一个任务可以执行websocket读操作。
+并行地调用`aiohttp.web.WebSocketResponse.receive()`是不行的，同一时间只有一个任务可以执行websocket读操作。
 不过其他任务可以使用相同的websocket对象发送数据：
 ```
 async def handler(request):
@@ -108,7 +108,7 @@ async def read_subscription(ws, redis):
 比如我们现在有两个终端：
 1.  `/echo` 一个用于以某种方式验证用户真实性的回显websocket。
 2. `/logout`  用于关闭某一用户的打开的所有websocket连接。
-一种简单的解决方法是在aiohttp.web.Application实例中为某一用户持续存储websocket响应，并在/logout_user处理器中执行aiohttp.web.WebSocketResponse.close()。
+一种简单的解决方法是在`aiohttp.web.Application`实例中为某一用户持续存储websocket响应，并在`/logout_user`处理器中执行`aiohttp.web.WebSocketResponse.close()`。
 ```
 async def echo_handler(request):
 
@@ -155,11 +155,11 @@ async with aiohttp.ClientSession(connector=conn) as session:
 ```
 
 ### 扩展
-请看 <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ClientReference.md#tcpconnector">aiohttp.TCPConnector及其local_addr参数</a>。
+请看 <a href="https://github.com/HuberTRoy/aiohttp-chinese-document/blob/master/aiohttp%E6%96%87%E6%A1%A3/ClientReference.md#tcpconnector">`aiohttp.TCPConnector`及其`local_addr`参数</a>。
 
 #  如果是隐式循环要怎么用aiohttp的测试功能呢？
 传递显式的loop是推荐方式。但有时如果你有一个嵌套多层而且写的不好的服务时，这几乎是不可能的任务。    
-这里推荐一种基于**猴子补丁**的技术方式，要依赖于aioes，具体方式是注射一个loop进去。这样你只需要让AioESService在其自己的循环中就行（##非常不确定此句的正确性##）。例子如下:
+这里推荐一种基于**猴子补丁**的技术方式，要依赖于aioes，具体方式是注射一个loop进去。这样你只需要让`AioESService`在其自己的循环中就行（##非常不确定此句的正确性##）。例子如下:
 ```
 import pytest
 

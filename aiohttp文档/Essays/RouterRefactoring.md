@@ -25,7 +25,7 @@ route = resource.add_route('GET', handler)
 拆散HTTP路径和方法真棒！
 
 
-## 后端兼容方面
+## 向后兼容方面
 重构之后功能兼容之前99%已部署的内容。    
 99%的意思就是所有的栗子和绝大多数现存代码不需要修改就可以工作，不过我们仍然在遵守着向后不兼容政策，只不过感觉不到。    
 `app.router['name']`现在返回`aiohttp.web.BaseResource`实例而不是`aiohttp.web.Route`实例， 但资源具有相同的 `resource.url(...)`这个最常用的方法，所以最终用户也感觉不出变化。   
