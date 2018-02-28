@@ -2,7 +2,7 @@
 
 自己试着翻译，如有不当的地方请随时反馈~。:wink:
 
-如果你是在GitHub上浏览，可以移步至[GitBook](https://hubertroy.gitbooks.io/aiohttp-chinese-documentation/content/aiohttp%E6%96%87%E6%A1%A3/Introduce.html)中获得更好的阅读体验。
+如果你是在GitHub上浏览，可以移步至[GitBook](https://hubertroy.gitbooks.io/aiohttp-chinese-documentation/content/aiohttp%E6%96%87%E6%A1%A3/Introduce.html)或[Love2.io](https://love2.io/@hubertroy/doc/aiohttp-chinese-documentation/SREADME.md)中获得更好的阅读体验。
 
 ### 进度：
 基本翻译完成~，可能有很多不合理的地方，如有看到方便的话请随时反馈交流~，谢谢~。
