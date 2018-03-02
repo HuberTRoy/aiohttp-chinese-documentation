@@ -73,9 +73,11 @@ async def handler(request):
 # 如何并行地接收来自不同源的事件？
 比如我们现在有两个事件：
 1. 某一终端用户的WebSocket事件。
+
 2. Redis PubSub从应用的其他地方接受信息并要通过websocket发送给其他用户的事件。
 并行地调用`aiohttp.web.WebSocketResponse.receive()`是不行的，同一时间只有一个任务可以执行websocket读操作。
 不过其他任务可以使用相同的websocket对象发送数据：
+
 ```
 async def handler(request):
 
