@@ -109,6 +109,7 @@ async def read_subscription(ws, redis):
 1.  `/echo` 一个用于以某种方式验证用户真实性的回显websocket。
 2. `/logout`  用于关闭某一用户的打开的所有websocket连接。
 一种简单的解决方法是在`aiohttp.web.Application`实例中为某一用户持续存储websocket响应，并在`/logout_user`处理器中执行`aiohttp.web.WebSocketResponse.close()`。
+
 ```
 async def echo_handler(request):
 
@@ -148,6 +149,7 @@ def main():
 
 # 如何从特定IP地址上发起请求？
 如果你的系统上有多个IP接口，你可以选择其中一个来绑定到本地socket:
+
 ```
 conn = aiohttp.TCPConnector(local_addr=('127.0.0.1', 0), loop=loop)
 async with aiohttp.ClientSession(connector=conn) as session:
@@ -159,7 +161,8 @@ async with aiohttp.ClientSession(connector=conn) as session:
 
 #  如果是隐式循环要怎么用aiohttp的测试功能呢？
 传递显式的loop是推荐方式。但有时如果你有一个嵌套多层而且写的不好的服务时，这几乎是不可能的任务。    
-这里推荐一种基于**猴子补丁**的技术方式，要依赖于aioes，具体方式是注射一个loop进去。这样你只需要让`AioESService`在其自己的循环中就行（##非常不确定此句的正确性##）。例子如下:
+这里推荐一种基于**猴子补丁**的技术方式，要依赖于`aioes`，具体方式是注射一个loop进去。这样你只需要让`AioESService`在其自己的循环中就行（##非常不确定此句的正确性##）。例子如下:
+
 ```
 import pytest
 
@@ -179,7 +182,7 @@ class TestAcceptance:
             assert resp.status == 200
 ```
 
-注意我们为AioESService打了补丁，但是要额外传入一个显式loop（你需要自己加载loop fixture）。
+注意我们为`AioESService`打了补丁，但是要额外传入一个显式`loop`（你需要自己加载loop fixture）。
 最后需要测试的代码（你需要一个本地elasticsearch实例来运行）：
 ```
 import asyncio
@@ -223,6 +226,7 @@ if __name__ == "__main__":
     web.run_app(create_app())
 ```
 全部测试文件：
+
 ```
 from unittest.mock import patch, MagicMock
 
