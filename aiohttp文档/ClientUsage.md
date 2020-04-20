@@ -497,7 +497,7 @@ async with session.get('http://httpbin.org/get') as resp:
  'CONTENT-LENGTH': '331',
  'CONNECTION': 'keep-alive'}
  ```
-这是一个特别的字典，它只为HTTP头信息而生。根据<a href="http://tools.ietf.org/html/rfc7230#section-3.2"> RFC 7230</a>，HTTP头信息中的名字是不分区大小写的。同时也支持多个不同的值对应同一个键。
+这是一个特别的字典，它只为HTTP头信息而生。根据<a href="http://tools.ietf.org/html/rfc7230#section-3.2"> RFC 7230</a>，HTTP头信息中的名字是不区分大小写的。同时也支持多个不同的值对应同一个键。
 
 所以我们可以通过任意形式访问它:
 ```
