@@ -186,7 +186,7 @@ app.router.add_get('/greet/{name}', handler.handle_greeting)
 
 ## 基础视图类
 
-`aiohttp.web`提供django风格的基础试图类。
+`aiohttp.web`提供django风格的基础视图类。
 
 你可以从 `View` 类中继承，并自定义http请求的处理方法:
 
